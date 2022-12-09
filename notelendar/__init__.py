@@ -47,6 +47,13 @@ def login():
         res = con.execute("SELECT * FROM user WHERE author_hash = ?", [pwdHashed])
         user = res.fetchone()
         if user is None:
+            if not app.config['ALLOW_RIGISTER']:
+                return '''
+                <script>
+                alert("查無使用者！");
+                window.location.href='/';
+                </script>
+                '''
             data = {
                 'username': request.form['username'],
                 'headers': {

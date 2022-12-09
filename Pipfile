@@ -8,6 +8,7 @@ flask = "*"
 pypugjs = "*"
 libsass = "*"
 pytz = "*"
+importlib-metadata = "*"
 
 [dev-packages]
 
