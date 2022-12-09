@@ -4,3 +4,6 @@ config.py
 *.css.map
 
 *.db
+
+.env
+.venv/
