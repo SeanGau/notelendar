@@ -2,30 +2,41 @@
 
 {% block main %}
 .d-flex.flex-column.h-100
-  #table-block: table.table.table-dark.table-striped
+  #table-block.flex-grow-1: table.table.table-dark
     thead.sticky-top: tr
-      th.date: .d-grid: a#add-col.btn.btn-primary(href="#") 新增欄
+      th.date: .d-grid: a#add-col.btn.btn-info(href="#") 新增欄
       {% for key in headers.keys() %}
       th.p-0 
-        textarea.note-key.form-control(data-note-key="{{key}}") {{headers[key]}}
+        .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]}}
       {% endfor %}
-    {% for row in data %}
-    tr
-      th.date {{row['object_date']}}
-      {% for key in headers %}
-      td.p-0
-        textarea.note-content.form-control(data-note-date="{{row['object_date']}}" data-note-key="{{key}}") {{row['datas'].get(key,'')}}
+    tbody
+      {% for row in data %}
+      tr
+        {% if today == row['object_date'] %}
+        th.date.today(data-note-date="{{row['object_date']}}"): div {{row['object_date']}}
+        {% else %}
+        th.date(data-note-date="{{row['object_date']}}"): div {{row['object_date']}}
+        {% endif %}
+        {% for key in headers %}
+        td.p-0
+          .textarea.note-content.form-control(data-note-date="{{row['object_date']}}" data-note-key="{{key}}" contenteditable="true") {{row['datas'].get(key,'')}}
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
-  #control-bar.pt-2: .container: .py-2.bg-dark.row.g-2
-    .col-md-auto
-      h3.sticky-top.pe-3
-        | hello {{username}}
-        a.ms-2.btn.btn-warning(href="/login") 登出
-    .col.col-lg-6.ms-auto: .d-grid: .btn-group.mb-2
-      a#prev-dates.btn.btn-primary(href="#") 往前
-      a.ms-2.btn.btn-primary(href="/?page=0") 今日
-      a.ms-2#next-dates.btn.btn-primary(href="#") 往後
+  #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
+    .row.g-2
+      .col-md-auto: .d-flex
+        h3.sticky-top.pe-3
+          | hello {{username}}
+          a.ms-2.btn.btn-warning(href="/login") 登出
+      .col.col-lg-5.ms-auto
+        .d-grid: .btn-group.mb-2
+          a#prev-dates.btn.btn-info(href="#") 往前
+          a#today.ms-2.btn.btn-info(href="/?page=0") 今日
+          a.ms-2#next-dates.btn.btn-info(href="#") 往後
+    .row.g-2
+      .ms-auto.col-auto: input.form-control(type="date", name="sdate")
+      .col.col-md-5: input.form-control(type="text", name="search")
+      .col-auto: a#search.btn.btn-warning(href="#") 搜尋
 {% endblock %}
 
 {% block script %}

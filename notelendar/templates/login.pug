@@ -1,14 +1,15 @@
 {% extends '/base.pug' %}
 
 {% block main %}
-.container.py-5
-  h1 login to notelendar
-  form(action='/login' method='post')
-    .mb-3
-      label.form-label(for='username') 帳號
-      input.form-control#username(type='text' name='username')
-    .mb-3
-      label.form-label(for='pwd') 密碼
-      input.form-control#pwd(type='password' name='pwd')
-    button.btn.btn-primary(type='submit') 登入
+.container.h-100: .d-flex.justify-content-center.align-items-center.h-100
+  div(style="min-width: 30vw")
+    h1 notelendar
+    form(action='/login' method='post')
+      .mb-3
+        label.form-label(for='username') 帳號
+        input.form-control#username(type='text' name='username')
+      .mb-3
+        label.form-label(for='pwd') 密碼
+        input.form-control#pwd(type='password' name='pwd')
+      button.btn.btn-info(type='submit') 登入
 {% endblock %}

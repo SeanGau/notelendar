@@ -1,15 +1,16 @@
 from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify
 from sassutils.wsgi import SassMiddleware
-import sqlite3, json, hashlib, datetime, pytz
+import sqlite3, json, hashlib, datetime, pytz, shutil
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
 app.wsgi_app = SassMiddleware(app.wsgi_app, {'notelendar': ('static/sass', 'static/css', '/static/css', True)})
 app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
+print(sqlite3.sqlite_version)
 
-def sha256(str):
+def sha_hash(str):
     str += app.config['SALT']
-    return hashlib.sha256(str.encode('utf-8')).hexdigest()   
+    return hashlib.sha3_224(str.encode('utf-8')).hexdigest()   
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -40,8 +41,8 @@ def login():
         session.pop('pwdHashed', None)
         return render_template('login.pug')
     else:
-        pwd = request.form['username'] + request.form['pwd']
-        pwdHashed = sha256(pwd)
+        pwd = request.form['username'].lower() + request.form['pwd']
+        pwdHashed = sha_hash(pwd)
         con = get_db()
         res = con.execute("SELECT * FROM user WHERE author_hash = ?", [pwdHashed])
         user = res.fetchone()
@@ -49,9 +50,9 @@ def login():
             data = {
                 'username': request.form['username'],
                 'headers': {
-                    '0_'+sha256(datetime.datetime.now().isoformat() + '重要事項'): '重要事項', 
-                    '1_'+sha256(datetime.datetime.now().isoformat() + '欄位1'): '欄位1', 
-                    '2_'+sha256(datetime.datetime.now().isoformat() + '欄位2'): '欄位2'
+                    '0_'+sha_hash(datetime.datetime.now().isoformat() + '重要事項'): '重要事項', 
+                    '1_'+sha_hash(datetime.datetime.now().isoformat() + '欄位1'): '欄位1', 
+                    '2_'+sha_hash(datetime.datetime.now().isoformat() + '欄位2'): '欄位2'
                 }
             }
             con.execute("INSERT INTO user ('author_hash', 'datas') VALUES (?, ?)", 
@@ -71,28 +72,47 @@ def home():
     if 'pwdHashed' not in session:
         return redirect(url_for('login'))
     page = int(request.args.get('page', 0))
-    con = get_db()
-    initDate = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date() + datetime.timedelta(days=(-7 + page * 30))
-    res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ?ORDER BY object_date ASC LIMIT 60", [session['pwdHashed'], initDate])
-    data = res.fetchall()
+    search = request.args.get('search', None)
+    today = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date()
+    try:
+        sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d")
+    except:
+        sdate = today
+    initDate = sdate + datetime.timedelta(days=(page * 30 - 6))
+    print("init date:", initDate)
     dataArray = []
     dataDateArray = []
-    for row in data:
-        dataArray.append({
-            'object_date': row['object_date'],
-            'datas': json.loads(row['datas'])
-        })
-        dataDateArray.append(row['object_date'])
-    for i in range(60):
-        curDate = initDate + datetime.timedelta(days=i)
-        if curDate.strftime('%Y-%m-%d') not in dataDateArray:
+    con = get_db()
+    res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
+    user = res.fetchone()
+    session['headers'] = json.loads(user['datas'])['headers']
+    if search is None:
+        res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate])
+        data = res.fetchall()
+        for row in data:
             dataArray.append({
-                'object_date': curDate.strftime('%Y-%m-%d'),
-                'datas': {}
+                'object_date': row['object_date'],
+                'datas': json.loads(row['datas'])
+            })
+            dataDateArray.append(row['object_date'])
+        for i in range(63 - len(data)):
+            curDate = initDate + datetime.timedelta(days=i)
+            if curDate.strftime('%Y-%m-%d') not in dataDateArray:
+                dataArray.append({
+                    'object_date': curDate.strftime('%Y-%m-%d'),
+                    'datas': {}
+                })
+    else:
+        res = con.execute("SELECT object_date, datas FROM datas, json_each(datas) WHERE author_hash = ? AND json_each.value LIKE ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49",[session['pwdHashed'], f"%{str(search)}%", initDate])
+        data = res.fetchall()
+        for row in data:
+            dataArray.append({
+                'object_date': row['object_date'],
+                'datas': json.loads(row['datas'])
             })
     dataArray.sort(key=lambda data: data['object_date'])
             
-    return render_template('home.pug', data=dataArray, headers=session['headers'], username=session['username'])
+    return render_template('home.pug', data=dataArray, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'))
 
 @app.route('/api/insert', methods=['POST'])
 def insert():
@@ -114,24 +134,30 @@ def insert():
 def addHeader():
     inData = dict(request.json)
     print(inData)
-    if 'key' not in inData:
-        inData['key'] = f"{inData['value']}_" + sha256(datetime.datetime.now().isoformat() + f"欄位{inData['value']}")
-        inData['value'] = f"欄位{inData['value']}"
+    con = get_db()
     headers = session['headers']
-    headers[inData['key']] = inData['value']
+    if 'key' not in inData:
+        inData['key'] = f"{inData['value']}_" + sha_hash(datetime.datetime.now().isoformat() + f"欄位{inData['value']}")
+        inData['value'] = f"欄位{inData['value']}"
+        headers[inData['key']] = inData['value']
+    elif len(inData['value'].replace("<br>","")) < 1:
+        headers.pop(inData['key'])
+        print("pop key", inData['key'])
+    else:
+        headers[inData['key']] = inData['value']
     newData = {
         'username': session['username'],
         'headers': headers
     }
-    con = get_db()
     con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(newData, ensure_ascii=False), session['pwdHashed']])
     con.commit()
     session['headers'] = headers
     return jsonify({"success": True}), 200, {'contentType': 'application/json'}
 
-@app.route('/cleardb')
+@app.route('/initdb')
 def cleardb():
     if app.debug:
+        shutil.copyfile(app.config['DATABASE'],f'db_backup/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.db')
         init_db()
     else:
         print("not in debug, skip.")
