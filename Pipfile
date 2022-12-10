@@ -9,6 +9,7 @@ pypugjs = "*"
 libsass = "*"
 pytz = "*"
 importlib-metadata = "*"
+python-dateutil = "*"
 
 [dev-packages]
 

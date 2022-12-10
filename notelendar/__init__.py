@@ -1,6 +1,7 @@
 from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify
 from sassutils.wsgi import SassMiddleware
-import sqlite3, json, hashlib, datetime, pytz, shutil
+from dateutil.relativedelta import relativedelta
+import sqlite3, json, hashlib, datetime, pytz, shutil, calendar
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
@@ -85,10 +86,8 @@ def home():
         sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d")
     except:
         sdate = today
-    initDate = sdate + datetime.timedelta(days=(page * 30 - 6))
-    print("init date:", initDate)
-    dataArray = []
-    dataDateArray = []
+    initDate = sdate + relativedelta(days=-6, months=page)
+    dataByDay = {}
     con = get_db()
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
     user = res.fetchone()
@@ -97,29 +96,42 @@ def home():
         res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate])
         data = res.fetchall()
         for row in data:
-            dataArray.append({
-                'object_date': row['object_date'],
-                'datas': json.loads(row['datas'])
-            })
-            dataDateArray.append(row['object_date'])
-        for i in range(63 - len(data)):
-            curDate = initDate + datetime.timedelta(days=i)
-            if curDate.strftime('%Y-%m-%d') not in dataDateArray:
-                dataArray.append({
-                    'object_date': curDate.strftime('%Y-%m-%d'),
-                    'datas': {}
-                })
+            dataByDay[row['object_date']] = json.loads(row['datas'])
+        for i in range(49 - len(data)):
+            curDate = initDate + relativedelta(days=i)
+            if curDate.strftime('%Y-%m-%d') not in dataByDay:
+                dataByDay[curDate.strftime('%Y-%m-%d')] = {}
     else:
         res = con.execute("SELECT object_date, datas FROM datas, json_each(datas) WHERE author_hash = ? AND json_each.value LIKE ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49",[session['pwdHashed'], f"%{str(search)}%", initDate])
         data = res.fetchall()
         for row in data:
-            dataArray.append({
-                'object_date': row['object_date'],
-                'datas': json.loads(row['datas'])
-            })
-    dataArray.sort(key=lambda data: data['object_date'])
-            
-    return render_template('home.pug', data=dataArray, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'))
+            dataByDay[row['object_date']] = json.loads(row['datas'])
+    dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
+    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'))
+
+@app.route('/month')
+def month():
+    if 'pwdHashed' not in session:
+        return redirect(url_for('login'))
+    page = int(request.args.get('page', 0))
+    currentKey = str(request.args.get('key', ''))
+    if len(currentKey) < 1 or currentKey not in session['headers']:
+        currentKey = list(session['headers'].keys())[0]
+    today = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date()
+    initDate = today.replace(day=1) + relativedelta(months=page)
+    monthCalendar = calendar.monthcalendar(initDate.year, initDate.month)
+    dataByDay = {}
+    con = get_db()
+    res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
+    user = res.fetchone()
+    session['headers'] = json.loads(user['datas'])['headers']
+    res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate])
+    data = res.fetchall()
+    for row in data:
+        dataByDay[row['object_date']] = json.loads(row['datas'])
+    dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
+    return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'), 
+                           monthCalendar=monthCalendar, yearmonth=initDate.strftime("%Y-%m"), key=currentKey)
 
 @app.route('/api/insert', methods=['POST'])
 def insert():

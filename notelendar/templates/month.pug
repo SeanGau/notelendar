@@ -1,0 +1,52 @@
+{% extends '/base.pug' %}
+{% block head %}
+link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
+{% endblock %}
+{% block main %}
+.d-flex.flex-column.h-100
+  #table-block.flex-grow-1: table.table.table-dark: tbody
+    {% for week in monthCalendar %}
+    tr
+      {% for day in week %}
+      {% if day > 0 %}
+      {% with date = yearmonth + '-' + '%02d' % day %}
+      td
+        {% if date == today %}
+        span.today {{day}}
+        {% else %}
+        span {{day}}
+        {% endif %}
+        .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data.get(date,{}).get(key,'')}}
+      {% endwith %}
+      {% else %}
+      td
+      {% endif %}
+      {% endfor %}
+    {% endfor %}
+  #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
+    .row.g-2
+      .col-md-auto: .d-flex
+        h3.sticky-top.pe-3
+          | hello {{username}}
+          a.ms-2.btn.btn-warning(href="/login") 登出
+          a.ms-2.btn.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
+      .col.col-lg-5.ms-auto
+        .d-grid: .btn-group.mb-2
+          a#prev-dates.btn.btn-info(href="#") 往前
+          a#today.ms-2.btn.btn-info(href="/month?page=0") 本月
+          a.ms-2#next-dates.btn.btn-info(href="#") 往後
+    .row.g-2
+      .ms-auto.col-auto.text-end: h3 {{yearmonth}}
+      .col-6.col-md-3: select#header-key.form-control(name="header-key")
+        {% for _key in headers.keys() %} 
+        {% if _key == key %}
+        option(value="{{_key}}" selected) {{headers[_key]}}
+        {% else %}
+        option(value="{{_key}}") {{headers[_key]}}
+        {% endif %}
+        {% endfor %}
+{% endblock %}
+
+{% block script %}
+script(src="{{ url_for('static', filename='js/month.js') }}") 
+{% endblock %}

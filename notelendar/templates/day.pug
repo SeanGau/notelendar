@@ -1,5 +1,7 @@
 {% extends '/base.pug' %}
-
+{% block head %}
+link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
+{% endblock %}
 {% block main %}
 .d-flex.flex-column.h-100
   #table-block.flex-grow-1: table.table.table-dark
@@ -10,16 +12,16 @@
         .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]}}
       {% endfor %}
     tbody
-      {% for row in data %}
+      {% for date in data.keys() %}
       tr
-        {% if today == row['object_date'] %}
-        th.date.today(data-note-date="{{row['object_date']}}"): div {{row['object_date']}}
+        {% if today == date %}
+        th.date.today(data-note-date="{{date}}"): div {{date}}
         {% else %}
-        th.date(data-note-date="{{row['object_date']}}"): div {{row['object_date']}}
+        th.date(data-note-date="{{date}}"): div {{date}}
         {% endif %}
         {% for key in headers %}
         td.p-0
-          .textarea.note-content.form-control(data-note-date="{{row['object_date']}}" data-note-key="{{key}}" contenteditable="true") {{row['datas'].get(key,'')}}
+          .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data[date].get(key,'')}}
         {% endfor %}
       {% endfor %}
   #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
@@ -28,6 +30,7 @@
         h3.sticky-top.pe-3
           | hello {{username}}
           a.ms-2.btn.btn-warning(href="/login") 登出
+          a.ms-2.btn.btn-warning(href="/month?page={{request.args.get('page', 0)}}") 月曆
       .col.col-lg-5.ms-auto
         .d-grid: .btn-group.mb-2
           a#prev-dates.btn.btn-info(href="#") 往前
@@ -40,5 +43,5 @@
 {% endblock %}
 
 {% block script %}
-script(src="{{ url_for('static', filename='js/home.js') }}") 
+script(src="{{ url_for('static', filename='js/day.js') }}") 
 {% endblock %}
