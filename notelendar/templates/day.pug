@@ -26,8 +26,8 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
       {% endfor %}
   #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
     .row.g-2
-      .col-md-auto: .d-flex
-        h3.sticky-top.pe-3
+      .col-md-auto
+        h3.mb-0
           | hello {{username}}
           a.ms-2.btn.btn-warning(href="/login") 登出
           a.ms-2.btn.btn-warning(href="/month?page={{request.args.get('page', 0)}}") 月曆

@@ -25,8 +25,8 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
     {% endfor %}
   #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
     .row.g-2
-      .col-md-auto: .d-flex
-        h3.sticky-top.pe-3
+      .col-md-auto
+        h3.mb-0
           | hello {{username}}
           a.ms-2.btn.btn-warning(href="/login") 登出
           a.ms-2.btn.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
@@ -35,8 +35,8 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
           a#prev-dates.btn.btn-info(href="#") 往前
           a#today.ms-2.btn.btn-info(href="/month?page=0") 本月
           a.ms-2#next-dates.btn.btn-info(href="#") 往後
-    .row.g-2
-      .ms-auto.col-auto.text-end: h3 {{yearmonth}}
+    .row.g-2: .d-flex.align-items-center
+      .ms-auto.col-auto.text-end: h3.mb-0.me-3 {{yearmonth}}
       .col-6.col-md-3: select#header-key.form-control(name="header-key")
         {% for _key in headers.keys() %} 
         {% if _key == key %}

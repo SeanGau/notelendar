@@ -30,6 +30,7 @@ def close_connection(exception):
         db.close()
 
 def init_db():
+    shutil.copyfile(app.config['DATABASE'],f'db_backup/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.db')
     with app.app_context():
         db = get_db()
         with app.open_resource('schema.sql', mode='r') as f:
@@ -176,7 +177,6 @@ def addHeader():
 @app.route('/initdb')
 def cleardb():
     if app.debug:
-        shutil.copyfile(app.config['DATABASE'],f'db_backup/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.db')
         init_db()
     else:
         print("not in debug, skip.")
