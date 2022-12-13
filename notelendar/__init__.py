@@ -1,7 +1,7 @@
-from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort
+from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
-import sqlite3, json, hashlib, datetime, pytz, shutil, calendar
+import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
@@ -36,6 +36,10 @@ def init_db():
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
