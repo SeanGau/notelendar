@@ -22,7 +22,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
       tr
         th.date: .d-grid: a#add-col.btn.btn-info(href="#") 新增欄
         {% for key in headers.keys() %}
-        th.p-0(data-table-)
+        th.p-0
           .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]['title']}}
         {% endfor %}
     tbody
@@ -38,14 +38,14 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
           .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data[date].get(key,'')['note']}}
         {% endfor %}
       {% endfor %}
-  #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
+  #control-bar.bg-dark: .container-fluid.py-2.gx-3
     .row.g-2
       .col-md-5.ms-auto
-        .d-grid: .btn-group.mb-2
+        .d-grid: .btn-group
           a#prev-dates.btn.btn-info(href="#") 往前
           a#today.ms-2.btn.btn-info(href="/?page=0") 今日
           a.ms-2#next-dates.btn.btn-info(href="#") 往後
-      .col: .row
+      .col: .row.g-2
         .ms-auto.col-auto: input.form-control(type="date" name="sdate")
         .col.col-md-5: input.form-control(type="text" name="search" value="{{request.args.get('search', '')}}")
         .col-auto: a#search.btn.btn-warning(href="#") 搜尋

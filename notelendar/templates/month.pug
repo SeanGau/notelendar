@@ -29,10 +29,10 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
       {% endif %}
       {% endfor %}
     {% endfor %}
-  #control-bar.bg-dark.pt-2: .container-fluid.py-2.g-4
+  #control-bar.bg-dark: .container-fluid.py-2.gx-3
     .row.g-2
       .col-md-5.ms-auto
-        .d-grid: .btn-group.mb-2
+        .d-grid: .btn-group
           a#prev-dates.btn.btn-info(href="#") 往前
           a#today.ms-2.btn.btn-info(href="/month?page=0") 本月
           a.ms-2#next-dates.btn.btn-info(href="#") 往後
