@@ -5,11 +5,14 @@
     &:hover
       filter: invert(.05)
   th
+    border: 0
+    position: relative
     outline: 1px solid var(--bs-table-border-color)
     vertical-align: middle
   th.date
-    text-align: center
     position: sticky
+    z-index: 1019
+    text-align: center
     left: 0
     width: 6.5rem
     div
@@ -19,9 +22,15 @@
     &.today
       background-color: #663
   td
+    border: 0
+    position: relative
     height: 4rem
     min-width: 10rem
     max-width: 40vw
-    border: 1px solid var(--bs-table-border-color)
+    outline: 1px solid var(--bs-table-border-color)
+    //border: 1px solid var(--bs-table-border-color)
     resize: both
     overflow: auto
+  .sticky
+    position: sticky
+    z-index: 1019

@@ -17,7 +17,7 @@ $(".textarea.note-content").on("blur", function (e) {
   }
   $.ajax({
     type: "POST",
-    url: "/api/insert",
+    url: "/api/update-content",
     data: JSON.stringify({
       'noteDate': noteDate,
       'noteKey': noteKey,
@@ -108,4 +108,19 @@ $("#search").on("click", function (e) {
   searchString = $("input[name=search]").val();
   sdate = $("input[name=sdate]").val();
   window.location.href = `/?search=${searchString}&sdate=${sdate}`;
+})
+
+$("select[name=freeze]").on("change", function(e) {
+  e.preventDefault();
+  //let freezeCol = url.searchParams.get("freeze") || 0;
+  let freezeCol = $(this).val();
+  $(".sticky").css({"left": ""});
+  $(".sticky").removeClass("sticky");
+  $("tr").each(function () {
+    for (let i = 1; i <= freezeCol; i++) {
+      let colDom = $($("td,th", this)[i]);
+      colDom.css({"left": $("#table-block").scrollLeft() + colDom.offset().left});
+      colDom.addClass("sticky");
+    }
+  })
 })

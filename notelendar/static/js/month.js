@@ -17,7 +17,7 @@ $(".textarea.note-content").on("blur", function (e) {
   }
   $.ajax({
     type: "POST",
-    url: "/api/insert",
+    url: "/api/update-content",
     data: JSON.stringify({
       'noteDate': noteDate,
       'noteKey': noteKey,

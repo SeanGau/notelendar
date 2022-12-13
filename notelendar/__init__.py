@@ -1,4 +1,4 @@
-from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify
+from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
 import sqlite3, json, hashlib, datetime, pytz, shutil, calendar
@@ -59,9 +59,9 @@ def login():
             data = {
                 'username': request.form['username'],
                 'headers': {
-                    '0_'+sha_hash(datetime.datetime.now().isoformat() + '重要事項'): '重要事項', 
-                    '1_'+sha_hash(datetime.datetime.now().isoformat() + '欄位1'): '欄位1', 
-                    '2_'+sha_hash(datetime.datetime.now().isoformat() + '欄位2'): '欄位2'
+                    '0_'+sha_hash(datetime.datetime.now().isoformat() + '重要事項'): {'title': '重要事項'}, 
+                    '1_'+sha_hash(datetime.datetime.now().isoformat() + '欄位1'): {'title': '欄位1'}, 
+                    '2_'+sha_hash(datetime.datetime.now().isoformat() + '欄位2'): {'title': '欄位2'}
                 }
             }
             con.execute("INSERT INTO user ('author_hash', 'datas') VALUES (?, ?)", 
@@ -87,7 +87,7 @@ def home():
         sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d")
     except:
         sdate = today
-    initDate = sdate + relativedelta(days=-6, months=page)
+    initDate = sdate + relativedelta(days=-3, months=page)
     dataByDay = {}
     con = get_db()
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
@@ -134,24 +134,25 @@ def month():
     return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'), 
                            monthCalendar=monthCalendar, yearmonth=initDate.strftime("%Y-%m"), key=currentKey)
 
-@app.route('/api/insert', methods=['POST'])
-def insert():
+@app.route('/api/update-content', methods=['POST'])
+def updateContent():
     data = dict(request.json)
     con = get_db()
     res = con.execute("SELECT datas FROM datas WHERE author_hash = ? AND object_date = ?", [session['pwdHashed'], data['noteDate']])
     col = res.fetchone()
     if col is None:
         con.execute("INSERT INTO datas ('author_hash', 'datas', 'object_date') VALUES (?, ?, ?)", 
-                    [session['pwdHashed'], json.dumps({data['noteKey']: data['note']}, ensure_ascii=False), data['noteDate']])
+                    [session['pwdHashed'], json.dumps({data['noteKey']: {'note': data['note']}}, ensure_ascii=False), data['noteDate']])
     else:
         newData = json.loads(col['datas'])
-        newData[data['noteKey']] = data['note']
+        if data['noteKey'] not in newData: newData[data['noteKey']] = {}
+        newData[data['noteKey']]['note'] = data['note']
         con.execute("UPDATE datas SET datas = ? WHERE author_hash = ? AND object_date = ?", [json.dumps(newData, ensure_ascii=False), session['pwdHashed'], data['noteDate']])
     con.commit()
     return jsonify({"success": True}), 200, {'contentType': 'application/json'}
 
 @app.route('/api/update-header', methods=['POST'])
-def addHeader():
+def updateHeader():
     inData = dict(request.json)
     print(inData)
     con = get_db()
@@ -159,12 +160,12 @@ def addHeader():
     if 'key' not in inData:
         inData['key'] = f"{inData['value']}_" + sha_hash(datetime.datetime.now().isoformat() + f"欄位{inData['value']}")
         inData['value'] = f"欄位{inData['value']}"
-        headers[inData['key']] = inData['value']
+        headers[inData['key']] = {'title': inData['value']}
     elif len(inData['value'].replace("<br>","")) < 1:
         headers.pop(inData['key'])
         print("pop key", inData['key'])
     else:
-        headers[inData['key']] = inData['value']
+        headers[inData['key']]['title'] = inData['value']
     newData = {
         'username': session['username'],
         'headers': headers
@@ -178,7 +179,7 @@ def addHeader():
 def cleardb():
     if app.debug:
         init_db()
+        return redirect(url_for('login'))
     else:
-        print("not in debug, skip.")
-    return redirect(url_for('login'))
+        return abort(403)
     
