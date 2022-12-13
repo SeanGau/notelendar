@@ -46,7 +46,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
           a#today.ms-2.btn.btn-info(href="/?page=0") 今日
           a.ms-2#next-dates.btn.btn-info(href="#") 往後
       .col: .row.g-2
-        .ms-auto.col-auto: input.form-control(type="date" name="sdate")
+        .ms-auto.col-auto: input.form-control(type="date" name="sdate" value="{{request.args.get('sdate', '')}}")
         .col.col-md-5: input.form-control(type="text" name="search" value="{{request.args.get('search', '')}}")
         .col-auto: a#search.btn.btn-warning(href="#") 搜尋
 {% endblock %}
