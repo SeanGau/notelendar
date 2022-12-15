@@ -6,9 +6,10 @@ html, body, main
 #table-block, #header-block, #control-bar
   flex-shrink: 1
 
-#table-block, #table-block .textarea
+#table-block, #table-block .textarea, #table-block .textarea-box
   overflow: auto
   &::-webkit-scrollbar
+    position: absolute
     width: 5px
     height: 5px
     background: transparent
@@ -18,8 +19,12 @@ html, body, main
     background: transparent
     box-shadow: transparent
   &::-webkit-scrollbar-thumb 
-    background: #AAA
+    width: 5px
     border-radius: 2.5px
+    background: #AAA6
+    &:hover
+      background: #AAAA
+      
 
 #table-block
   padding: 1px 0
@@ -35,6 +40,6 @@ html, body, main
     border: 0
     img, svg
       max-width: 100%
-    &:focus
+    &:focus, &:hover
       box-shadow: none
-      background-color: #FFF3
+      background-color: #FFF1

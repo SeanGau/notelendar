@@ -49,9 +49,22 @@ $("#next-dates").on("click", function (e) {
   window.location.href = url.href;
 })
 
-$("#header-key").on("change", function (e) {
+$("#headers-checkgroup input[type=checkbox]").on("change", function (e) {
   e.preventDefault();
-  nextKey = $(this).val();
-  url.searchParams.set("key", nextKey);
-  window.location.href = url.href;
+  let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
+  key = $(this).val();
+  if ($(this).prop("checked")) {
+    $(`.textarea[data-note-key=${key}]`).removeClass("d-none");
+    displayCol.push(key);
+  } else {
+    $(`.textarea[data-note-key=${key}]`).addClass("d-none");
+    displayCol.pop(key);
+  }
+  localStorage.setItem('month_display_col', JSON.stringify(displayCol));
+})
+
+let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
+displayCol.forEach(key => {
+  $(`.textarea[data-note-key=${key}]`).removeClass("d-none");
+  $(`#headers-checkgroup [value=${key}]`).prop("checked", true);
 })

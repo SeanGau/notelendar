@@ -112,7 +112,7 @@ def home():
         for row in data:
             dataByDay[row['object_date']] = json.loads(row['datas'])
     dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
-    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'))
+    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today)
 
 @app.route('/month')
 def month():
@@ -125,6 +125,7 @@ def month():
     today = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date()
     initDate = today.replace(day=1) + relativedelta(months=page)
     monthCalendar = calendar.monthcalendar(initDate.year, initDate.month)
+    monthDatesCalendar = calendar.Calendar().monthdatescalendar(initDate.year, initDate.month)
     dataByDay = {}
     con = get_db()
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
@@ -135,8 +136,8 @@ def month():
     for row in data:
         dataByDay[row['object_date']] = json.loads(row['datas'])
     dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
-    return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today.strftime('%Y-%m-%d'), 
-                           monthCalendar=monthCalendar, yearmonth=initDate.strftime("%Y-%m"), key=currentKey)
+    return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today, 
+                           monthCalendar=monthDatesCalendar)
 
 @app.route('/api/update-content', methods=['POST'])
 def updateContent():

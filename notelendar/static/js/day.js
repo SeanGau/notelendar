@@ -68,6 +68,10 @@ $(".textarea.note-key").on("blur", function (e) {
   })
 })
 
+$("td").on("resize", function (e) {
+  console.log(this);
+})
+
 $("#add-col").on("click", function (e) {
   e.preventDefault();
   $.ajax({
@@ -110,16 +114,16 @@ $("#search").on("click", function (e) {
   window.location.href = `/?search=${searchString}&sdate=${sdate}`;
 })
 
-$("select[name=freeze]").on("change", function(e) {
+$("select[name=freeze]").on("change", function (e) {
   e.preventDefault();
   //let freezeCol = url.searchParams.get("freeze") || 0;
   let freezeCol = $(this).val();
-  $(".sticky").css({"left": ""});
+  $(".sticky").css({ "left": "" });
   $(".sticky").removeClass("sticky");
   $("tr").each(function () {
     for (let i = 1; i <= freezeCol; i++) {
       let colDom = $($("td,th", this)[i]);
-      colDom.css({"left": $("#table-block").scrollLeft() + colDom.offset().left});
+      colDom.css({ "left": $("#table-block").scrollLeft() + colDom.offset().left });
       colDom.addClass("sticky");
     }
   })

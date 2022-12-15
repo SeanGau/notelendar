@@ -5,21 +5,42 @@
   td
     padding: .125rem
     width: calc(100% / 7)
-    height: calc(100% / 7)
+    height: 0
     border: 1px solid var(--bs-table-border-color)
     span
       margin: .125rem
       padding: .125rem
       display: inline-block
+      font-weight: 500
       &.today
         background-color: #663 
         border-radius: 1rem
+      &.other
+        color: #666
+    .textarea-box
+      height: calc(100% - 1.75rem)
     .textarea
-      height: calc( 100% - 1.75rem )
+      height: calc( 2em + 2px )
+      min-height: calc( 2em + 2px )
+      overflow: hidden
+      &:focus, &:hover
+        height: auto
+
+#table-block .textarea, #headers-checkgroup li
+  border-top: 1px dashed
+  border-bottom: 1px dashed
+  color: hsla(var(--textarea-color-hue), 40%, 50%, 1)
+  border-color: hsla(var(--textarea-color-hue), 40%, 50%, .5)
+  @for $i from 0 through 8
+    &:nth-child(4n + #{$i})
+      --textarea-color-hue: calc(80 + #{$i}*80)
 
 @media ( max-width: 1023px )
   #table-block
     table, .textarea
-      font-size: .5rem
+      font-size: .5rem !important
+    td .textarea-box
+      height: calc(100% - 1rem)
     td .textarea
-      height: calc( 100% - 1.5rem )
+      height: calc( 2em + 6px )
+      min-height: calc( 2em + 6px )

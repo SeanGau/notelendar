@@ -4,48 +4,50 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
 {% endblock %}
 {% block main %}
 .d-flex.flex-column.h-100
-  #title.p-2: .row.align-items-center.g-2
+  #header-block.p-2: .row.align-items-center.g-2
     .col-auto
-      h3.mb-0 Hello {{username}}
+      h4.mb-0 Hello {{username}}
     .col-auto.ms-auto
-        a.ms-2.btn.btn-warning(href="/login") 登出
-        a.ms-2.btn.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
+        a.ms-2.btn.btn-sm.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
+        a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
   #table-block.flex-grow-1: table.table.table-dark: tbody
     {% for week in monthCalendar %}
     tr
-      {% for day in week %}
-      {% if day > 0 %}
-      {% with date = yearmonth + '-' + '%02d' % day %}
+      {% for date in week %}
+      {% with day = date.strftime('%d')|int, dateString = date.strftime('%Y-%m-%d') %}
       td
         {% if date == today %}
         span.today {{day}}
+        {% elif date.month != monthCalendar[1][1].month %}
+        span.other {{day}}
         {% else %}
         span {{day}}
         {% endif %}
-        .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data.get(date,{}).get(key,'')['note']}}
+        .textarea-box
+          {% for key in headers.keys() %} 
+          .textarea.note-content.form-control.d-none(data-note-date="{{dateString}}" data-note-key="{{key}}" contenteditable="true") {{data.get(dateString,{}).get(key,'')['note']}}
+          {% endfor %}
       {% endwith %}
-      {% else %}
-      td
-      {% endif %}
       {% endfor %}
     {% endfor %}
   #control-bar.bg-dark: .container-fluid.py-2.gx-3
     .row.g-2
       .col-md-5.ms-auto
         .d-grid: .btn-group
-          a#prev-dates.btn.btn-info(href="#") 往前
-          a#today.ms-2.btn.btn-info(href="/month?page=0") 本月
-          a.ms-2#next-dates.btn.btn-info(href="#") 往後
+          a#prev-dates.btn.btn-sm.btn-info(href="#") 往前
+          a#today.ms-2.btn.btn-sm.btn-info(href="/month?page=0") 本月
+          a.ms-2#next-dates.btn.btn-sm.btn-info(href="#") 往後
       .col: .row.g-2: .d-flex.align-items-center
-        .ms-auto.col-auto.text-end: h3.mb-0.me-3 {{yearmonth}}
-        .col-6.col-md-3: select#header-key.form-control(name="header-key")
-          {% for _key in headers.keys() %} 
-          {% if _key == key %}
-          option(value="{{_key}}" selected) {{headers[_key]['title']}}
-          {% else %}
-          option(value="{{_key}}") {{headers[_key]['title']}}
-          {% endif %}
-          {% endfor %}
+        .ms-auto.col-auto.text-end: h4.mb-0.me-3 {{monthCalendar[1][1].strftime('%Y-%m')}}
+        .col-auto
+          .input-group#headers-checkgroup
+            button.btn.btn-sm.btn-light.dropdown-toggle(type='button' data-bs-toggle='dropdown' aria-expanded='false') 顯示欄位
+            ul.dropdown-menu.text-light.p-0
+              {% for key in headers.keys() %} 
+              li.p-2: .form-check.form-switch
+                input.form-check-input(type="checkbox" role="switch" value="{{key}}" id="key-check-{{loop.index}}")
+                label.form-check-label(for="key-check-{{loop.index}}") {{headers[key]['title']}}
+              {% endfor %}
 {% endblock %}
 
 {% block script %}

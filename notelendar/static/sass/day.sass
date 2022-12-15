@@ -1,6 +1,15 @@
 #table-block
+  table
+    width: max-content
+    min-width: 100%
   thead
     filter: drop-shadow(0 1px 1px black)
+    th.date
+      resize: none
+    th:not(.date)
+      resize: horizontal
+      overflow: auto
+      min-width: 10rem
   tbody tr
     &:hover
       filter: invert(.05)
@@ -15,23 +24,31 @@
     z-index: 1019
     text-align: center
     left: 0
-    width: 6.5rem
+    width: 7.5rem
+    resize: vertical
+    overflow: auto
     div
+      user-select: none
       display: inline-block
-      height: 100%
-      width: 6.5rem
+      height: auto
+      width: 100%
     &.today
       background-color: #663
   td
     border: 0
     position: relative
     height: 4rem
-    min-width: 10rem
-    max-width: 40vw
+    max-width: 30rem
     outline: 1px solid var(--bs-table-border-color)
     //border: 1px solid var(--bs-table-border-color)
-    resize: both
-    overflow: auto
   .sticky
     position: sticky
     z-index: 1019
+
+@media ( max-width: 767px )
+  #table-block th.date
+    resize: none
+    height: 3rem !important
+  #table-block thead th:not(.date)
+    resize: none
+    width: 10rem !important
