@@ -78,6 +78,10 @@ def login():
             session['username'] = json.loads(user['datas'])['username']
         
         session['pwdHashed'] = pwdHashed
+        if request.form.get('permanent') == 'on':
+            session.permanent = True
+        else:
+            session.permanent = False
         return redirect(url_for('home'))
     
 @app.route('/')

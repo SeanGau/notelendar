@@ -11,5 +11,9 @@
       .mb-3
         label.form-label(for='pwd') 密碼
         input.form-control#pwd(type='password' name='pwd')
-      button.btn.btn-info(type='submit') 登入
+      .row
+        .col-4: .d-grid: button.btn.btn-info(type='submit') 登入
+        .col-auto.ms-auto: .form-check
+          input.form-check-input#permanent(type='checkbox' name='permanent')
+          label.form-check-label(for='permanent') 記住我
 {% endblock %}
