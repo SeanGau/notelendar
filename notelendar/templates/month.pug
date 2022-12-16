@@ -3,6 +3,22 @@
 link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
 {% endblock %}
 {% block main %}
+.modal.fade#addNoteModal(tabindex='-1')
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      .modal-header
+        button.btn-close(type='button' data-bs-dismiss='modal' aria-label='Close')
+      .modal-body
+          .row.g-2
+            .col-5: input.mb-2.form-control(type="date" name="addNoteDate")
+            .col-7: select.mb-2.form-select(name="addNoteKey") 
+              {% for key in headers.keys() %} 
+              option(value="{{key}}") {{headers[key]['title']}}
+              {% endfor %}
+          .textarea.form-control(name="addNoteValue" contenteditable="true" rows="3") 
+      .modal-footer
+        button.btn.btn-secondary(type='button' data-bs-dismiss='modal') 取消
+        button.btn.btn-primary#submit(type='button') 新增
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
     .col-auto
@@ -23,9 +39,11 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
         {% else %}
         span {{day}}
         {% endif %}
-        .textarea-box
-          {% for key in headers.keys() %} 
-          .textarea.note-content.form-control.d-none(data-note-date="{{dateString}}" data-note-key="{{key}}" contenteditable="true") {{data.get(dateString,{}).get(key,'')['note']}}
+        .textarea-box(data-note-date="{{dateString}}")
+          {% for key in headers.keys() %}
+          {% if data.get(dateString,{}).get(key, None) %}
+          .textarea.note-content.form-control(class="bg-hue-{{loop.index}}" data-note-date="{{dateString}}" data-note-key="{{key}}" contenteditable="true") {{data.get(dateString,{}).get(key,'')['note']}}
+          {% endif %}
           {% endfor %}
       {% endwith %}
       {% endfor %}
@@ -44,8 +62,8 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
             button.btn.btn-sm.btn-light.dropdown-toggle(type='button' data-bs-toggle='dropdown' aria-expanded='false') 顯示欄位
             ul.dropdown-menu.text-light.p-0
               {% for key in headers.keys() %} 
-              li.p-2: .form-check.form-switch
-                input.form-check-input(type="checkbox" role="switch" value="{{key}}" id="key-check-{{loop.index}}")
+              li.p-2(class="bg-hue-{{loop.index}}"): .form-check.form-switch
+                input.form-check-input(type="checkbox" role="switch" value="{{key}}" id="key-check-{{loop.index}}" checked)
                 label.form-check-label(for="key-check-{{loop.index}}") {{headers[key]['title']}}
               {% endfor %}
 {% endblock %}

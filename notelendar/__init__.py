@@ -143,13 +143,34 @@ def month():
     return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today, 
                            monthCalendar=monthDatesCalendar)
 
+@app.route('/api/get-content/<date>/<key>')
+def getContent(date, key):
+    con = get_db()
+    res = con.execute("SELECT datas FROM datas WHERE author_hash = ? AND object_date = ?", [session['pwdHashed'], date])
+    col = res.fetchone()
+    if col is not None:
+        retData = {
+            "success": True,
+            "note": json.loads(col['datas']).get(key, {}).get('note', '')
+        }
+        return jsonify(retData), 200, {'contentType': 'application/json'}
+    else:
+        return jsonify({"success": True, "note": ""}), 200, {'contentType': 'application/json'}
+
 @app.route('/api/update-content', methods=['POST'])
 def updateContent():
     data = dict(request.json)
     con = get_db()
     res = con.execute("SELECT datas FROM datas WHERE author_hash = ? AND object_date = ?", [session['pwdHashed'], data['noteDate']])
     col = res.fetchone()
-    if col is None:
+    if len(data['note'].replace("<br>","")) < 1:
+        if col is not None:
+            newData = json.loads(col['datas'])
+            if data['noteKey'] in newData:
+                newData.pop(data['noteKey'])
+                con.execute("UPDATE datas SET datas = ? WHERE author_hash = ? AND object_date = ?", [json.dumps(newData, ensure_ascii=False), session['pwdHashed'], data['noteDate']])
+                print("pop note:", data['noteDate'], data['noteKey'])
+    elif col is None:
         con.execute("INSERT INTO datas ('author_hash', 'datas', 'object_date') VALUES (?, ?, ?)", 
                     [session['pwdHashed'], json.dumps({data['noteKey']: {'note': data['note']}}, ensure_ascii=False), data['noteDate']])
     else:
