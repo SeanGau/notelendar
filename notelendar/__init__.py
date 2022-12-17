@@ -135,7 +135,7 @@ def month():
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
     user = res.fetchone()
     session['headers'] = json.loads(user['datas'])['headers']
-    res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate])
+    res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate + relativedelta(days=-7)])
     data = res.fetchall()
     for row in data:
         dataByDay[row['object_date']] = json.loads(row['datas'])
