@@ -128,3 +128,10 @@ $("select[name=freeze]").on("change", function (e) {
     }
   })
 })
+
+$(function (e) {
+  console.log()
+  if($("th.date.today").length > 0) {
+    $("#table-block").scrollTop($("th.date.today").offset().top - 5*$("th.date.today").height());
+  }
+})

@@ -1,10 +1,12 @@
 let previousContent = "";
 
 $(".textarea-box").on("focus", ".textarea.note-content", function (e) {
+  $("#table-block table").addClass("editing");
   previousContent = $(this).html();
 })
 
 $(".textarea-box").on("blur", ".textarea.note-content", function (e) {
+  $("#table-block table").removeClass("editing");
   noteDate = $(this).data('note-date');
   noteKey = $(this).data('note-key');
   note = $(this).html();
@@ -47,7 +49,7 @@ $("#next-dates").on("click", function (e) {
 
 $("#headers-checkgroup input[type=checkbox]").on("change", function (e) {
   e.preventDefault();
-  let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
+  let displayCol = JSON.parse(sessionStorage.getItem('month_display_col') || '[]');
   key = $(this).val();
   if ($(this).prop("checked")) {
     $(`.textarea[data-note-key=${key}]`).removeClass("d-none");
@@ -58,24 +60,31 @@ $("#headers-checkgroup input[type=checkbox]").on("change", function (e) {
     $(`.textarea[data-note-key=${key}]`).addClass("d-none");
     displayCol.push(key);
   }
-  localStorage.setItem('month_display_col', JSON.stringify(displayCol));
+  sessionStorage.setItem('month_display_col', JSON.stringify(displayCol));
 })
 
-let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
+let displayCol = JSON.parse(sessionStorage.getItem('month_display_col') || '[]');
 displayCol.forEach(key => {
   $(`.textarea[data-note-key=${key}]`).addClass("d-none");
   $(`#headers-checkgroup [value=${key}]`).prop("checked", false);
 })
 
-$(".textarea-box .textarea").on("click", function (e) {
+$("td .textarea").on("wheel", function (e) {
+  e.stopPropagation();
+})
+
+$("td").on("wheel", function (e) {
   e.stopPropagation();
 })
 
 const addNoteModal = new bootstrap.Modal('#addNoteModal');
-$(".textarea-box").on("click", function (e) {
-  $("#addNoteModal input[name=addNoteDate]").val($(this).data("note-date"));
-  $("#addNoteModal .textarea[name=addNoteValue]").html("");
-  note = $(`.textarea[data-note-key=${$("#addNoteModal select[name=addNoteKey]").val()}]`, $(this)).html();
+$("td, td .textarea").on("click", function (e) {
+  date = $(".textarea-box", $(this)).data("note-date");
+  $("#addNoteModal input[name=addNoteDate]").val(date);
+  key = $(this).data("note-key") || $("#addNoteModal select[name=addNoteKey]").val();
+  $("#addNoteModal select[name=addNoteKey]").val(key);
+  note = $(`.textarea[data-note-key=${key}]`, $(this)).html() || "";
+  $("#addNoteModal .textarea[name=addNoteValue]").html(`<div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>`);
   $("#addNoteModal .textarea[name=addNoteValue]").html(note);
   addNoteModal.show();
 })
@@ -107,7 +116,7 @@ $("#addNoteModal #submit").on("click", function (e) {
 $("#addNoteModal select, #addNoteModal input").on("change", function (e) {
   noteDate = $("#addNoteModal input[name=addNoteDate]").val();
   noteKey = $("#addNoteModal select[name=addNoteKey]").val();
-  $("#addNoteModal .textarea[name=addNoteValue]").html("");
+  $("#addNoteModal .textarea[name=addNoteValue]").html(`<div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>`);
   $("#addNoteModal .textarea[name=addNoteValue]").prop("contenteditable", false);
 
   $.getJSON(`/api/get-content/${noteDate}/${noteKey}`, function (data) {

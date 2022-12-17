@@ -40,14 +40,14 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
       {% endfor %}
   #control-bar.bg-dark: .container-fluid.py-2.gx-3
     .row.g-2
-      .col-md-5.ms-auto
+      .col-md-4
         .d-grid: .btn-group
           a#prev-dates.btn.btn-sm.btn-info(href="#") 往前
           a#today.ms-2.btn.btn-sm.btn-info(href="/?page=0") 今日
           a.ms-2#next-dates.btn.btn-sm.btn-info(href="#") 往後
       .col: .row.g-2
-        .ms-auto.col-auto: input.form-control.form-control-sm(type="date" name="sdate" value="{{request.args.get('sdate', '')}}")
-        .col.col-md-5: input.form-control.form-control-sm(type="text" name="search" value="{{request.args.get('search', '')}}")
+        .ms-auto.col-auto: input.form-control.form-control-sm(type="date" name="sdate" value="{{request.args.get('sdate', today.strftime('%Y-%m-%d'))}}")
+        .col.col-md-4: input.form-control.form-control-sm(type="text" name="search" value="{{request.args.get('search', '')}}")
         .col-auto: a#search.btn.btn-sm.btn-warning(href="#") 搜尋
 {% endblock %}
 

@@ -18,12 +18,13 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
           .textarea.form-control(name="addNoteValue" contenteditable="true" rows="3") 
       .modal-footer
         button.btn.btn-secondary(type='button' data-bs-dismiss='modal') 取消
-        button.btn.btn-primary#submit(type='button') 新增
+        button.btn.btn-primary#submit(type='button') 確認
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
     .col-auto
       h4.mb-0 Hello {{username}}
-    .col-auto.ms-auto
+    .col-auto.ms-auto: .d-flex.align-items-center
+        h4.m-0.me-2.d-inline {{monthCalendar[1][1].strftime('%Y-%m')}}
         a.ms-2.btn.btn-sm.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
         a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
   #table-block.flex-grow-1: table.table.table-dark: tbody
@@ -42,7 +43,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
         .textarea-box(data-note-date="{{dateString}}")
           {% for key in headers.keys() %}
           {% if data.get(dateString,{}).get(key, None) %}
-          .textarea.note-content.form-control(class="bg-hue-{{loop.index}}" data-note-date="{{dateString}}" data-note-key="{{key}}" contenteditable="true") {{data.get(dateString,{}).get(key,'')['note']}}
+          .textarea.note-content.form-control(class="bg-hue-{{loop.index}}" data-note-date="{{dateString}}" data-note-key="{{key}}" contenteditable="false") {{data.get(dateString,{}).get(key,'')['note']}}
           {% endif %}
           {% endfor %}
       {% endwith %}
@@ -50,22 +51,18 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
     {% endfor %}
   #control-bar.bg-dark: .container-fluid.py-2.gx-3
     .row.g-2
-      .col-md-5.ms-auto
-        .d-grid: .btn-group
-          a#prev-dates.btn.btn-sm.btn-info(href="#") 往前
-          a#today.ms-2.btn.btn-sm.btn-info(href="/month?page=0") 本月
-          a.ms-2#next-dates.btn.btn-sm.btn-info(href="#") 往後
-      .col: .row.g-2: .d-flex.align-items-center
-        .ms-auto.col-auto.text-end: h4.mb-0.me-3 {{monthCalendar[1][1].strftime('%Y-%m')}}
-        .col-auto
-          .input-group#headers-checkgroup
-            button.btn.btn-sm.btn-light.dropdown-toggle(type='button' data-bs-toggle='dropdown' aria-expanded='false') 顯示欄位
-            ul.dropdown-menu.text-light.p-0
-              {% for key in headers.keys() %} 
-              li.p-2(class="bg-hue-{{loop.index}}"): .form-check.form-switch
-                input.form-check-input(type="checkbox" role="switch" value="{{key}}" id="key-check-{{loop.index}}" checked)
-                label.form-check-label(for="key-check-{{loop.index}}") {{headers[key]['title']}}
-              {% endfor %}
+      .col.col-md-4: .d-grid: .btn-group
+        a#prev-dates.btn.btn-sm.btn-info(href="#") 往前
+        a.ms-2#today.btn.btn-sm.btn-info(href="/month?page=0") 本月
+        a.ms-2#next-dates.btn.btn-sm.btn-info(href="#") 往後
+      .col-auto.ms-auto: .input-group#headers-checkgroup
+        button.btn.btn-sm.btn-light.dropdown-toggle(type='button' data-bs-toggle='dropdown' aria-expanded='false') 顯示欄位
+        ul.dropdown-menu.text-light.p-0
+          {% for key in headers.keys() %} 
+          li.p-2(class="bg-hue-{{loop.index}}"): .form-check.form-switch
+            input.form-check-input(type="checkbox" role="switch" value="{{key}}" id="key-check-{{loop.index}}" checked)
+            label.form-check-label(for="key-check-{{loop.index}}") {{headers[key]['title']}}
+          {% endfor %}
 {% endblock %}
 
 {% block script %}

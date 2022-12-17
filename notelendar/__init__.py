@@ -92,26 +92,26 @@ def home():
     search = request.args.get('search', None)
     today = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date()
     try:
-        sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d")
+        sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d").date()
     except:
         sdate = today
-    initDate = sdate + relativedelta(days=-3, months=page)
+    initDate = today.replace(day=1) + relativedelta(months=page)
     dataByDay = {}
     con = get_db()
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
     user = res.fetchone()
     session['headers'] = json.loads(user['datas'])['headers']
     if search is None:
-        res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49", [session['pwdHashed'], initDate])
+        res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? AND object_date < ? ORDER BY object_date ASC", [session['pwdHashed'], initDate, initDate + relativedelta(months=1)])
         data = res.fetchall()
         for row in data:
             dataByDay[row['object_date']] = json.loads(row['datas'])
-        for i in range(49 - len(data)):
+        for i in range(list(calendar.monthrange(initDate.year, initDate.month))[1]):
             curDate = initDate + relativedelta(days=i)
             if curDate.strftime('%Y-%m-%d') not in dataByDay:
                 dataByDay[curDate.strftime('%Y-%m-%d')] = {}
     else:
-        res = con.execute("SELECT object_date, datas FROM datas, json_each(datas) WHERE author_hash = ? AND json_each.value LIKE ? AND object_date >= ? ORDER BY object_date ASC LIMIT 49",[session['pwdHashed'], f"%{str(search)}%", initDate])
+        res = con.execute("SELECT object_date, datas FROM datas, json_each(datas) WHERE author_hash = ? AND json_each.value LIKE ? AND object_date >= ? ORDER BY object_date ASC LIMIT 31",[session['pwdHashed'], f"%{str(search)}%", sdate])
         data = res.fetchall()
         for row in data:
             dataByDay[row['object_date']] = json.loads(row['datas'])
@@ -208,6 +208,7 @@ def updateHeader():
 @app.route('/initdb')
 def cleardb():
     if app.debug:
+        print("init db")
         init_db()
         return redirect(url_for('login'))
     else:
