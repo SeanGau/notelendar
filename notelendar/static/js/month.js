@@ -49,7 +49,7 @@ $("#next-dates").on("click", function (e) {
 
 $("#headers-checkgroup input[type=checkbox]").on("change", function (e) {
   e.preventDefault();
-  let displayCol = JSON.parse(sessionStorage.getItem('month_display_col') || '[]');
+  let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
   key = $(this).val();
   if ($(this).prop("checked")) {
     $(`.textarea[data-note-key=${key}]`).removeClass("d-none");
@@ -60,25 +60,25 @@ $("#headers-checkgroup input[type=checkbox]").on("change", function (e) {
     $(`.textarea[data-note-key=${key}]`).addClass("d-none");
     displayCol.push(key);
   }
-  sessionStorage.setItem('month_display_col', JSON.stringify(displayCol));
+  localStorage.setItem('month_display_col', JSON.stringify(displayCol));
 })
 
-let displayCol = JSON.parse(sessionStorage.getItem('month_display_col') || '[]');
+let displayCol = JSON.parse(localStorage.getItem('month_display_col') || '[]');
 displayCol.forEach(key => {
   $(`.textarea[data-note-key=${key}]`).addClass("d-none");
   $(`#headers-checkgroup [value=${key}]`).prop("checked", false);
 })
 
-$("td .textarea").on("wheel", function (e) {
+$(".week td .textarea").on("wheel", function (e) {
   e.stopPropagation();
 })
 
-$("td").on("wheel", function (e) {
+$(".week td").on("wheel", function (e) {
   e.stopPropagation();
 })
 
 const addNoteModal = new bootstrap.Modal('#addNoteModal');
-$("td, td .textarea").on("click", function (e) {
+$(".week td, .week td .textarea").on("click", function (e) {
   date = $(".textarea-box", $(this)).data("note-date");
   $("#addNoteModal input[name=addNoteDate]").val(date);
   key = $(this).data("note-key") || $("#addNoteModal select[name=addNoteKey]").val();

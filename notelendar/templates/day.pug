@@ -6,7 +6,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
     .col-auto
-      h4.mb-0 Hello {{username}}
+      h4.mb-0 Hello {{username}} 💕
     .col-auto.ms-auto
       select.form-control.form-control-sm(name="freeze")
         option(value="0" selected) 凍結0欄 
@@ -20,7 +20,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
   #table-block.flex-grow-1: table.table.table-dark
     thead.sticky-top
       tr
-        th.date: .d-grid: a#add-col.btn.btn-sm.btn-info(href="#") 新增欄
+        th.date: .d-grid.p-2: a#add-col.btn.btn-sm.btn-info(href="#") 新增欄
         {% for key in headers.keys() %}
         th.p-0
           .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]['title']}}
@@ -29,9 +29,9 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
       {% for date in data.keys() %}
       tr
         {% if today.strftime('%Y-%m-%d') == date %}
-        th.date.today(data-note-date="{{date}}"): div {{date}}
+        th.date.today(data-note-date="{{date}}"): div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
         {% else %}
-        th.date(data-note-date="{{date}}"): div {{date}}
+        th.date(data-note-date="{{date}}"): div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
         {% endif %}
         {% for key in headers %}
         td.p-0

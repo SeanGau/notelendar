@@ -1,12 +1,13 @@
 from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
-import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os
+import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
 app.wsgi_app = SassMiddleware(app.wsgi_app, {'notelendar': ('static/sass', 'static/css', '/static/css', True)})
 app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
+locale.setlocale(locale.LC_ALL, "zh_TW.UTF-8")
 print(sqlite3.sqlite_version)
 
 def sha_hash(str):
@@ -115,7 +116,10 @@ def home():
         data = res.fetchall()
         for row in data:
             dataByDay[row['object_date']] = json.loads(row['datas'])
-    dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
+    dataSorted = {}
+    for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0]):
+        val['datetime'] = datetime.datetime.strptime(key, "%Y-%m-%d")
+        dataSorted[key] = val
     return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today)
 
 @app.route('/month')

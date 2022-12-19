@@ -126,12 +126,14 @@ $("select[name=freeze]").on("change", function (e) {
       colDom.css({ "left": $("#table-block").scrollLeft() + colDom.offset().left });
       colDom.addClass("sticky");
     }
-  })
+  });
+  localStorage.setItem("freeze_col", freezeCol);
 })
 
 $(function (e) {
   console.log()
   if($("th.date.today").length > 0) {
-    $("#table-block").scrollTop($("th.date.today").offset().top - 4*$("th.date.today").height());
+    $("#table-block").scrollTop($("th.date.today").offset().top - 4*16);
   }
+  $("select[name=freeze]").val(localStorage.getItem("freeze_col") || 0);
 })

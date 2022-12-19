@@ -22,14 +22,22 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
     .col-auto
-      h4.mb-0 Hello {{username}}
+      h4.mb-0 Hello {{username}} 💕
     .col-auto.ms-auto: .d-flex.align-items-center
         h4.m-0.me-2.d-inline {{monthCalendar[1][1].strftime('%Y-%m')}}
         a.ms-2.btn.btn-sm.btn-warning(href="/?page={{request.args.get('page', 0)}}") 日曆
         a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
+  #weekday.row.g-0
+    .col 一
+    .col 二
+    .col 三
+    .col 四
+    .col 五
+    .col 六
+    .col 日
   #table-block.flex-grow-1: table.table.table-dark: tbody
     {% for week in monthCalendar %}
-    tr
+    tr.week
       {% for date in week %}
       {% with day = date.strftime('%d')|int, dateString = date.strftime('%Y-%m-%d') %}
       td
