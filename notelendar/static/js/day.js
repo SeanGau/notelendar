@@ -1,11 +1,27 @@
 let previousContent = "";
+let colWidth = [];
+
+let updateColWidth = function () {
+  baseWidth = $("th.date")[0].clientWidth;
+  $(".col-title").each(function (index, element) {
+    if ($(element).attr("style") && $(element).width() / baseWidth > 1.1) {
+      
+      colWidth[index] = $(element).width() / baseWidth;
+    } else {
+      colWidth[index] = null;
+    }
+  });
+  localStorage.setItem("col_width", colWidth);
+}
+
 $(".textarea.note-content, .textarea.note-key").on("focus", function (e) {
   previousContent = $(this).html();
-  headerWidth = $("th.date")[0].clientWidth;
+  baseWidth = $("th.date")[0].clientWidth;
   thisOffset = $(this).offset().left;
-  if (thisOffset < headerWidth) {
-    $("#table-block").scrollLeft($("#table-block").scrollLeft() - headerWidth + thisOffset);
+  if (thisOffset < baseWidth) {
+    $("#table-block").scrollLeft($("#table-block").scrollLeft() - baseWidth + thisOffset);
   }
+  updateColWidth();
 })
 
 $(".textarea.note-content").on("blur", function (e) {
@@ -131,9 +147,17 @@ $("select[name=freeze]").on("change", function (e) {
 })
 
 $(function (e) {
-  console.log()
-  if($("th.date.today").length > 0) {
-    $("#table-block").scrollTop($("th.date.today").offset().top - 4*16);
+  if ($("th.date.today").length > 0) {
+    $("#table-block").scrollTop($("th.date.today").offset().top - 4 * 16);
   }
   $("select[name=freeze]").val(localStorage.getItem("freeze_col") || 0);
+
+  baseWidth = $("th.date")[0].clientWidth;
+  colWidth = (localStorage.getItem("col_width") || "").split(",");
+  console.log(colWidth);
+  colWidth.forEach((width, index) => {
+    if ($(".col-title")[index]) {
+      $($(".col-title")[index]).css({ "width": width * baseWidth });
+    }
+  });
 })

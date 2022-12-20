@@ -1,6 +1,9 @@
+#header-block, #control-bar
+  background: var(--bs-dark)
 #table-block
   &::-webkit-scrollbar
     width: 5px
+    height: 5px
   table
     width: max-content
     min-width: 100%
@@ -14,12 +17,13 @@
       min-width: 8rem
   tbody tr
     &:hover
-      filter: invert(.05)
+      filter: brightness(1.1)
+      background: #AAA3
   th
     border: 0
     position: relative
-    outline: 1px solid var(--bs-table-border-color)
     vertical-align: middle
+    background-color: var(--bs-dark)
   th.date
     position: sticky
     z-index: 1019
@@ -37,13 +41,14 @@
     border: 0
     position: relative
     max-width: 30rem
-    outline: 1px solid var(--bs-table-border-color)
-    //border: 1px solid var(--bs-table-border-color)
   .sticky
     position: sticky
     z-index: 1019
 
 @media ( max-width: 767px )
-  #table-block thead th:not(.date)
-    resize: none
-    width: 10rem !important
+  #table-block
+    th.date
+      width: 7rem
+    thead th:not(.date)
+      resize: none
+      width: 7rem !important

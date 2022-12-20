@@ -17,12 +17,12 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
     .col-auto
       a.btn.btn-sm.btn-warning(href="/month?page={{request.args.get('page', 0)}}") 月曆
       a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
-  #table-block.flex-grow-1: table.table.table-dark
+  #table-block.flex-grow-1: table.table.m-0
     thead.sticky-top
       tr
         th.date: .d-grid.p-2: a#add-col.btn.btn-sm.btn-info(href="#") 新增欄
         {% for key in headers.keys() %}
-        th.p-0
+        th.p-0.col-title
           .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]['title']}}
         {% endfor %}
     tbody
@@ -38,7 +38,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
           .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data[date].get(key,'')['note']}}
         {% endfor %}
       {% endfor %}
-  #control-bar.bg-dark: .container-fluid.py-2.gx-3
+  #control-bar: .container-fluid.py-2.gx-3
     .row.g-2
       .col-md-4
         .d-grid: .btn-group

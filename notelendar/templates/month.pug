@@ -35,7 +35,7 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/month.css') }}")
     .col 五
     .col 六
     .col 日
-  #table-block.flex-grow-1: table.table.table-dark: tbody
+  #table-block.flex-grow-1: table.table.m-0.h-100: tbody
     {% for week in monthCalendar %}
     tr.week
       {% for date in week %}

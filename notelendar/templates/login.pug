@@ -2,7 +2,7 @@
 
 {% block main %}
 .container.h-100: .d-flex.justify-content-center.align-items-center.h-100
-  div(style="min-width: 30vw")
+  div(style="min-width: 33vw; padding: 1.5rem; background: #333A; border-radius: 2rem")
     h1 Who's calender
     form(action='/login' method='post')
       .mb-3
@@ -16,4 +16,8 @@
         .col-auto.ms-auto: .form-check
           input.form-check-input#permanent(type='checkbox' name='permanent')
           label.form-check-label(for='permanent') 記住我
+{% endblock %}
+{% block script %}
+script.
+  localStorage.clear();
 {% endblock %}
