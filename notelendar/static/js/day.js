@@ -5,7 +5,7 @@ let updateColWidth = function () {
   baseWidth = $("th.date")[0].clientWidth;
   $(".col-title").each(function (index, element) {
     if ($(element).attr("style") && $(element).width() / baseWidth > 1.1) {
-      
+
       colWidth[index] = $(element).width() / baseWidth;
     } else {
       colWidth[index] = null;
@@ -22,6 +22,27 @@ $(".textarea.note-content, .textarea.note-key").on("focus", function (e) {
     $("#table-block").scrollLeft($("#table-block").scrollLeft() - baseWidth + thisOffset);
   }
   updateColWidth();
+})
+
+let lastAnchor = [];
+$(".textarea").on("keyup", function (e) {
+  noteKey = $(this).data('note-key');
+  anchor = document.getSelection();
+  switch (e.keyCode) {
+    case 37:
+    case 38:
+      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+        $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").prev("tr")).focus();
+      }
+      break;
+    case 39:
+    case 40:
+      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+        $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").next("tr")).focus();
+      }
+      break;
+  }
+  lastAnchor = [anchor.anchorNode, anchor.anchorOffset];
 })
 
 $(".textarea.note-content").on("blur", function (e) {
