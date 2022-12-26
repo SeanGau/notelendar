@@ -22,6 +22,9 @@ $(".textarea.note-content, .textarea.note-key").on("focus", function (e) {
     $("#table-block").scrollLeft($("#table-block").scrollLeft() - baseWidth + thisOffset);
   }
   updateColWidth();
+}).on("click", function (e) {
+  anchor = document.getSelection();
+  lastAnchor = [anchor.anchorNode, anchor.anchorOffset];
 })
 
 let lastAnchor = [];
@@ -30,15 +33,31 @@ $(".textarea").on("keyup", function (e) {
   anchor = document.getSelection();
   switch (e.keyCode) {
     case 37:
+      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+        $(".textarea", $(this).parents("td").prev("td")).focus();
+        lastAnchor = [];
+      }
+      break;
     case 38:
       if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
         $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").prev("tr")).focus();
+        lastAnchor = [];
       }
       break;
     case 39:
+      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+        $(".textarea", $(this).parents("td").next("td")).focus();
+        anchor.modify('move', 'right', 'documentboundary');
+        anchor.collapseToEnd();
+        lastAnchor = [];
+      }
+      break;
     case 40:
       if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
         $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").next("tr")).focus();
+        anchor.modify('move', 'right', 'documentboundary');
+        anchor.collapseToEnd();
+        lastAnchor = [];
       }
       break;
   }
