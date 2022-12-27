@@ -31,6 +31,7 @@ let lastAnchor = [];
 $(".textarea").on("keyup", function (e) {
   noteKey = $(this).data('note-key');
   anchor = document.getSelection();
+  console.log(e.keyCode, lastAnchor);
   switch (e.keyCode) {
     case 37:
       if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
@@ -60,11 +61,15 @@ $(".textarea").on("keyup", function (e) {
         lastAnchor = [];
       }
       break;
+    default:
+      lastAnchor = [];
+      return;
   }
   lastAnchor = [anchor.anchorNode, anchor.anchorOffset];
 })
 
 $(".textarea.note-content").on("blur", function (e) {
+  this
   noteDate = $(this).data('note-date');
   noteKey = $(this).data('note-key');
   note = $(this).html();
