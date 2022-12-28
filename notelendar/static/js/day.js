@@ -24,29 +24,33 @@ $(".textarea.note-content, .textarea.note-key").on("focus", function (e) {
   updateColWidth();
 }).on("click", function (e) {
   anchor = document.getSelection();
-  lastAnchor = [anchor.anchorNode, anchor.anchorOffset];
+  lastAnchor = [anchor.focusNode, anchor.focusOffset];
 })
 
 let lastAnchor = [];
 $(".textarea").on("keyup", function (e) {
   noteKey = $(this).data('note-key');
   anchor = document.getSelection();
-  console.log(e.keyCode, lastAnchor);
+  console.log(anchor.toString().length, e.keyCode, lastAnchor);
+  if (anchor.toString().length > 0 || (e.keyCode != 37 && e.keyCode != 38 && e.keyCode != 39 && e.keyCode != 40)) {
+    lastAnchor = [];
+    return;
+  }
   switch (e.keyCode) {
     case 37:
-      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+      if (anchor.focusNode.isEqualNode(lastAnchor[0]) && anchor.focusOffset == lastAnchor[1]) {
         $(".textarea", $(this).parents("td").prev("td")).focus();
         lastAnchor = [];
       }
       break;
     case 38:
-      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+      if (anchor.focusNode.isEqualNode(lastAnchor[0]) && anchor.focusOffset == lastAnchor[1]) {
         $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").prev("tr")).focus();
         lastAnchor = [];
       }
       break;
     case 39:
-      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+      if (anchor.focusNode.isEqualNode(lastAnchor[0]) && anchor.focusOffset == lastAnchor[1]) {
         $(".textarea", $(this).parents("td").next("td")).focus();
         anchor.modify('move', 'right', 'documentboundary');
         anchor.collapseToEnd();
@@ -54,18 +58,15 @@ $(".textarea").on("keyup", function (e) {
       }
       break;
     case 40:
-      if (anchor.anchorNode.isEqualNode(lastAnchor[0]) && anchor.anchorOffset == lastAnchor[1]) {
+      if (anchor.focusNode.isEqualNode(lastAnchor[0]) && anchor.focusOffset == lastAnchor[1]) {
         $(`.textarea[data-note-key=${noteKey}]`, $(this).parents("tr").next("tr")).focus();
         anchor.modify('move', 'right', 'documentboundary');
         anchor.collapseToEnd();
         lastAnchor = [];
       }
       break;
-    default:
-      lastAnchor = [];
-      return;
   }
-  lastAnchor = [anchor.anchorNode, anchor.anchorOffset];
+  lastAnchor = [anchor.focusNode, anchor.focusOffset];
 })
 
 $(".textarea.note-content").on("blur", function (e) {
