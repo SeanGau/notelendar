@@ -194,7 +194,7 @@ $("select[name=freeze]").on("change", function (e) {
 
 $(function (e) {
   if ($("th.date.today").length > 0) {
-    $("#table-block").scrollTop($("th.date.today").offset().top - 4 * 16);
+    $("#table-block").scrollTop($("th.date.today").offset().top - 2 * 32 - 2 * 48);
   }
   $("select[name=freeze]").val(localStorage.getItem("freeze_col") || 0);
 
