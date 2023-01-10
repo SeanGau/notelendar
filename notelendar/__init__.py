@@ -1,14 +1,24 @@
 from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
-import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale
+import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale, csv
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
 app.wsgi_app = SassMiddleware(app.wsgi_app, {'notelendar': ('static/sass', 'static/css', '/static/css', True)})
 app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
 locale.setlocale(locale.LC_ALL, "zh_TW.UTF-8")
-print(sqlite3.sqlite_version)
+print("sqlite:", sqlite3.sqlite_version)
+
+holidayCalendar = {}
+with open("./notelendar/static/assets/112年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        dateString = datetime.datetime.strptime(row['西元日期'], "%Y%m%d").strftime("%Y-%m-%d")
+        holidayCalendar[dateString] = {
+            "isHoliday": True if row['是否放假'] == '2' else False,
+            "what": row['備註']
+        }
 
 def sha_hash(str):
     str += app.config['SALT']
@@ -119,6 +129,8 @@ def home():
     dataSorted = {}
     for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0]):
         val['datetime'] = datetime.datetime.strptime(key, "%Y-%m-%d")
+        if key in holidayCalendar:
+            val['holiday'] = holidayCalendar[key]
         dataSorted[key] = val
     return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today)
 
