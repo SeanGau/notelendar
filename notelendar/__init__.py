@@ -48,15 +48,17 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
-@app.route('/today_bg.jpg')
+@app.route('/todaybg.jpg')
 def todaybg():
-    apiurl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-TW"
+    apiurl = "https://pixabay.com/api/?key=27325054-b7631ae42e9f183140ebbf121&q=kitten&image_type=photo"
     response = requests.get(apiurl)
     data = response.json()
-    imgurl = 'https://www.bing.com/' + data['images'][0]['url']
-    img_data = requests.get(imgurl).content
-    with open(os.path.join(app.root_path, 'static', 'assets', 'todaybg.jpg'), 'wb') as handler:
-        handler.write(img_data)
+    imgurl = data['hits'][0].get('largeImageURL')
+    if imgurl and imgurl != session.get('lastbgurl'):
+        img_data = requests.get(imgurl).content
+        with open(os.path.join(app.root_path, 'static', 'assets', 'todaybg.jpg'), 'wb') as handler:
+            handler.write(img_data)
+        session['lastbgurl'] = imgurl
     return send_from_directory(os.path.join(app.root_path, 'static', 'assets'), 'todaybg.jpg', mimetype='image/jpg')
 
 @app.route('/favicon.ico')
