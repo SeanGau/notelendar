@@ -1,7 +1,7 @@
 from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
-import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale, csv
+import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale, csv, requests
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
@@ -47,6 +47,17 @@ def init_db():
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+@app.route('/today_bg.jpg')
+def todaybg():
+    apiurl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-TW"
+    response = requests.get(apiurl)
+    data = response.json()
+    imgurl = 'https://www.bing.com/' + data['images'][0]['url']
+    img_data = requests.get(imgurl).content
+    with open(os.path.join(app.root_path, 'static', 'assets', 'todaybg.jpg'), 'wb') as handler:
+        handler.write(img_data)
+    return send_from_directory(os.path.join(app.root_path, 'static', 'assets'), 'todaybg.jpg', mimetype='image/jpg')
 
 @app.route('/favicon.ico')
 def favicon():

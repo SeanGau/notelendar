@@ -10,8 +10,9 @@ libsass = "*"
 pytz = "*"
 importlib-metadata = "*"
 python-dateutil = "*"
+requests = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"
