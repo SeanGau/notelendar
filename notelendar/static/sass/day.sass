@@ -45,6 +45,28 @@
     border: 0
     position: relative
     max-width: 30rem
+    &::before
+      content: ''
+      position: absolute
+      top: 0
+      left: 0
+      height: 100%
+      width: 100%
+      pointer-events: none
+      background-image: url("/todaybg.jpg")
+      background-attachment: fixed
+      background-position: center center
+      background-size: cover
+    &::after
+      content: ''
+      position: absolute
+      top: 0
+      left: 0
+      height: 100%
+      width: 100%
+      pointer-events: none
+      background: #1116
+      
   .sticky
     position: sticky
     z-index: 1019

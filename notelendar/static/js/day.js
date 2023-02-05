@@ -102,7 +102,7 @@ $(".textarea.note-key").on("blur", function (e) {
     return;
   }
   if (header.replace("<br>", "").length < 1) {
-    let dialog = confirm("空值會導致此欄位被移除，是否確定？");
+    let dialog = confirm("空值會導致此欄位被移除且!!!無法復原!!!，是否確定？");
     if (!dialog) {
       location.reload(true);
       return;
@@ -197,6 +197,7 @@ $(function (e) {
     $("#table-block").scrollTop($("th.date.today").offset().top - 2 * 32 - 2 * 48);
   }
   $("select[name=freeze]").val(localStorage.getItem("freeze_col") || 0);
+  $("select[name=freeze]").trigger("change");
 
   baseWidth = $("th.date")[0].clientWidth;
   colWidth = (localStorage.getItem("col_width") || "").split(",");
