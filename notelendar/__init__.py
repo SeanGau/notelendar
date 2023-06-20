@@ -124,6 +124,8 @@ def home():
     con = get_db()
     res = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']])
     user = res.fetchone()
+    if not user:
+        return redirect(url_for('login'))
     session['headers'] = json.loads(user['datas'])['headers']
     if search is None:
         res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? AND object_date < ? ORDER BY object_date ASC", [session['pwdHashed'], initDate, initDate + relativedelta(months=1)])
@@ -234,6 +236,21 @@ def updateHeader():
     session['headers'] = headers
     return jsonify({"success": True}), 200, {'contentType': 'application/json'}
 
+@app.route('/reset-pass', methods=['GET', 'POST'])
+def reset():
+    if request.method == 'GET':
+        return render_template('reset.pug')
+    else:
+        pwd = request.form['username'].lower() + request.form['pwdnew']
+        pwdHashedNew = sha_hash(pwd)
+        pwdHashedOld = request.form['pwdhashed']
+        con = get_db()
+        con.execute("UPDATE user SET author_hash = ? WHERE author_hash = ?", [pwdHashedNew, pwdHashedOld])
+        con.execute("UPDATE datas SET author_hash = ? WHERE author_hash = ?", [pwdHashedNew, pwdHashedOld])
+        con.commit()
+        print(f"reset pass for {request.form['username']} as {pwdHashedNew}")
+        return redirect(url_for('login'))
+    
 @app.route('/initdb')
 def cleardb():
     if app.debug:
