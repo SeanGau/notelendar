@@ -28,11 +28,16 @@ $(".textarea.note-content, .textarea.note-key").on("focus", function (e) {
 })
 
 let lastAnchor = [];
-$(".textarea").on("keyup", function (e) {
+let isComposing = false;
+$(".textarea").on("compositionstart", function (e) {
+  isComposing = true;
+}).on("compositionend", function (e) {
+  isComposing = false;
+}).on("keyup", function (e) {
   noteKey = $(this).data('note-key');
   anchor = document.getSelection();
   console.log(anchor.toString().length, e.keyCode, lastAnchor);
-  if (anchor.toString().length > 0 || (e.keyCode != 37 && e.keyCode != 38 && e.keyCode != 39 && e.keyCode != 40)) {
+  if (isComposing || anchor.toString().length > 0 || (e.keyCode != 37 && e.keyCode != 38 && e.keyCode != 39 && e.keyCode != 40)) {
     lastAnchor = [];
     return;
   }

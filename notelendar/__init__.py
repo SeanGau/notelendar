@@ -19,6 +19,14 @@ with open("./notelendar/static/assets/112年中華民國政府行政機關辦公
             "isHoliday": True if row['是否放假'] == '2' else False,
             "what": row['備註']
         }
+with open("./notelendar/static/assets/113年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        dateString = datetime.datetime.strptime(row['西元日期'], "%Y%m%d").strftime("%Y-%m-%d")
+        holidayCalendar[dateString] = {
+            "isHoliday": True if row['是否放假'] == '2' else False,
+            "what": row['備註']
+        }
 
 def sha_hash(str):
     str += app.config['SALT']
@@ -53,7 +61,7 @@ def todaybg():
     apiurl = "https://pixabay.com/api/?key=27325054-b7631ae42e9f183140ebbf121&q=kitten&image_type=photo"
     response = requests.get(apiurl)
     data = response.json()
-    imgurl = data['hits'][0].get('largeImageURL')
+    imgurl = data['hits'][datetime.datetime.now().day%20].get('largeImageURL')
     if imgurl and imgurl != session.get('lastbgurl'):
         img_data = requests.get(imgurl).content
         with open(os.path.join(app.root_path, 'static', 'assets', 'todaybg.jpg'), 'wb') as handler:
@@ -64,6 +72,24 @@ def todaybg():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    if request.method == 'GET':
+        return render_template('config.pug', headers = session['headers'])
+    else:
+        con = get_db()
+        form = dict(request.form)
+        data = json.loads(con.execute("SELECT datas FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()['datas'])
+        data['headers'][form['key']] = {
+            'title': form['title'],
+            'order': int(form['order'])
+        }
+        con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(data, ensure_ascii=False), session['pwdHashed']])
+        con.commit()
+        session['headers'] = data['headers']
+        return redirect(url_for('config'))
+    
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -126,7 +152,8 @@ def home():
     user = res.fetchone()
     if not user:
         return redirect(url_for('login'))
-    session['headers'] = json.loads(user['datas'])['headers']
+    sortedHeaders = dict(sorted(json.loads(user['datas'])['headers'].items(), key=lambda item: item[1].get('order', 0)))
+    session['headers'] = sortedHeaders
     if search is None:
         res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? AND object_date < ? ORDER BY object_date ASC", [session['pwdHashed'], initDate, initDate + relativedelta(months=1)])
         data = res.fetchall()

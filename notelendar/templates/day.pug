@@ -14,29 +14,29 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
         option(value="2") 凍結2欄
         option(value="3") 凍結3欄
         option(value="4") 凍結4欄
-    .col-auto
+    .col-auto.d-flex
       a.btn.btn-sm.btn-warning(href="/month?page={{request.args.get('page', 0)}}") 月曆
+      a.ms-2.btn.btn-sm.btn-warning.d-flex(href="/config") <i class="bi bi-gear my-auto"></i>
       a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
   #table-block.flex-grow-1: table.table.m-0
     thead.sticky-top
       tr
         th.date: .d-grid.p-2: a#add-col.btn.btn-sm.btn-info(href="#") 新增欄
-        {% for key in headers.keys() %}
+        {% for key in headers %}
         th.p-0.col-title
           .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]['title']}}
         {% endfor %}
     tbody
       {% for date in data.keys() %}
       tr
-        {% if today.strftime('%Y-%m-%d') == date %}
-        th.date.today(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
-          div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
-          div.what {{data[date].get('holiday', {}).get('what', '')}}
-        {% else %}
-        th.date(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
-          div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
-          div.what {{data[date].get('holiday', {}).get('what', '')}}
-        {% endif %}
+        if today.strftime('%Y-%m-%d') == date
+          th.date.today(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
+            div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
+            div.what {{data[date].get('holiday', {}).get('what', '')}}
+        else
+          th.date(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
+            div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
+            div.what {{data[date].get('holiday', {}).get('what', '')}}
         {% for key in headers %}
         td.p-0
           .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data[date].get(key,'')['note']}}
