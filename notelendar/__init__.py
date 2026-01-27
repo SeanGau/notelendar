@@ -11,23 +11,16 @@ locale.setlocale(locale.LC_ALL, "zh_TW.UTF-8")
 print("sqlite:", sqlite3.sqlite_version)
 
 holidayCalendar = {}
-with open("./notelendar/static/assets/112年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        dateString = datetime.datetime.strptime(row['西元日期'], "%Y%m%d").strftime("%Y-%m-%d")
-        holidayCalendar[dateString] = {
-            "isHoliday": True if row['是否放假'] == '2' else False,
-            "what": row['備註']
-        }
-with open("./notelendar/static/assets/113年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        dateString = datetime.datetime.strptime(row['西元日期'], "%Y%m%d").strftime("%Y-%m-%d")
-        holidayCalendar[dateString] = {
-            "isHoliday": True if row['是否放假'] == '2' else False,
-            "what": row['備註']
-        }
-
+for _year in [114, 115]:
+    with open(f"./notelendar/static/assets/{_year}年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            dateString = datetime.datetime.strptime(row['西元日期'], "%Y%m%d").strftime("%Y-%m-%d")
+            holidayCalendar[dateString] = {
+                "isHoliday": True if row['是否放假'] == '2' else False,
+                "what": row['備註']
+            }
+            
 def sha_hash(str):
     str += app.config['SALT']
     return hashlib.sha3_224(str.encode('utf-8')).hexdigest()   
