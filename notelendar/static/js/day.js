@@ -241,6 +241,7 @@ function updateTask(dom) {
         $(`tr[data-note-date="${taskDate}"] td.tasks`).append(_taskDom)
       } else {
         $(`.task-item[data-task="${taskId}"] span`).text(taskContent)
+        $(`.task-item[data-task="${taskId}"] input[name=task-content]`).val(taskContent)
       }
       $(`.task-item[data-task="${taskId}"]`).toggleClass("text-decoration-line-through opacity-50", isDone)
       $(`.task-item[data-task="${taskId}"] input[type=checkbox]`).prop("checked", isDone)
