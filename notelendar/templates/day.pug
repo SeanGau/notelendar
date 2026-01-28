@@ -71,11 +71,14 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
       .modal-content
         .modal-header.justify-content-between
           h5#taskModalLabel.modal-title 待辦事項
+          label
+            input.form-check-input.me-1(type="checkbox" name="show-all")
+            span 顯示全部
           button#addTaskBtn.btn.btn-info(type='button'): i.bi-plus
         .modal-body
           #taskList.d-flex.flex-column
             {% for task in tasks %}
-            .input-group.mb-2.task-item(class="{{'d-none' if task['isDone'] else ''}}" data-task="{{task['taskId']}}")
+            .input-group.mb-2.task-item(class="{{'d-none opacity-50 text-decoration-line-through' if task['isDone'] else ''}}" data-task="{{task['taskId']}}")
               input(type="hidden" name="task-id" value="{{task['taskId']}}")
               .input-group-text
                 input.form-check-input.mt-0(type="checkbox" name="task-done" checked=task['isDone'])

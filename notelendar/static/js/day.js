@@ -189,16 +189,21 @@ $("select[name=freeze]").on("change", function (e) {
   localStorage.setItem("freeze_col", freezeCol);
 })
 
+$("#taskModal input[name=show-all").on("change", function (e) {
+  e.preventDefault();
+  $("#taskList .task-item.text-decoration-line-through").toggleClass("d-none", !this.checked);
+})
+
 $("#addTaskBtn").on("click", function (e) {
   e.preventDefault();
   let _dom = $(`
     <div class="input-group mb-2 task-item">
       <input type="hidden" name="task-id" value="">
       <div class="input-group-text">
-        <input class="form-check-input mt-0" type="checkbox" value="">
+        <input class="form-check-input mt-0" type="checkbox" name="task-done" value="">
       </div>
-      <input type="text" class="form-control flex-grow-1">
-      <input type="date" class="form-control flex-grow-0" style="width:7rem; font-size: 0.7rem">
+      <input type="text" name="task-content" class="form-control flex-grow-1" value="">
+      <input type="date" name="task-date" class="form-control flex-grow-0" style="width:7rem; font-size: 0.7rem">
     </div>
     `)
   $("#taskList").append(_dom)
@@ -234,10 +239,14 @@ function updateTask(dom) {
           </label>
         `)
         $(`tr[data-note-date="${taskDate}"] td.tasks`).append(_taskDom)
+      } else {
+        $(`.task-item[data-task="${taskId}"] span`).text(taskContent)
       }
       $(`.task-item[data-task="${taskId}"]`).toggleClass("text-decoration-line-through opacity-50", isDone)
       $(`.task-item[data-task="${taskId}"] input[type=checkbox]`).prop("checked", isDone)
-      $(`#taskModal .task-item[data-task="${taskId}"]`).toggleClass("d-none", isDone)
+      if (!$("#taskModal input[name=show-all").is(":checked")) {
+        $(`#taskModal .task-item[data-task="${taskId}"]`).toggleClass("d-none", isDone)
+      }
     },
     error: function (XMLHttpRequest, textStatus, errorThrown) {
       alert(XMLHttpRequest.status, XMLHttpRequest.readyState, textStatus);
@@ -264,6 +273,7 @@ $("#taskList").on("blur", ".task-item input[type=text]", function (e) {
   const _dom = $(this).parents(".task-item");
   updateTask(_dom)
 })
+
 
 $(function (e) {
   if ($("th.date.today").length > 0) {

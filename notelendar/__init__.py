@@ -218,7 +218,10 @@ def updateTask():
     userDatas = json.loads(user['datas'])
     if 'tasks' not in userDatas:
         userDatas['tasks'] = {}
-    userDatas['tasks'][data['taskId']] = data
+    if data.get('taskContent', None):
+        userDatas['tasks'][data['taskId']] = data
+    elif data['taskId'] in userDatas['tasks']:
+        del userDatas['tasks'][data['taskId']]
     con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(userDatas, ensure_ascii=False), session['pwdHashed']])
     con.commit()
     return jsonify({"success": True, 'hash': data['taskId']}), 200, {'contentType': 'application/json'}
