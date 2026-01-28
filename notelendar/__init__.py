@@ -66,23 +66,9 @@ def todaybg():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route('/config', methods=['GET', 'POST'])
+@app.route('/config', methods=['GET'])
 def config():
-    if request.method == 'GET':
-        return render_template('config.pug', headers = session['headers'])
-    else:
-        con = get_db()
-        form = dict(request.form)
-        data = json.loads(con.execute("SELECT datas FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()['datas'])
-        data['headers'][form['key']] = {
-            'title': form['title'],
-            'order': int(form['order'])
-        }
-        con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(data, ensure_ascii=False), session['pwdHashed']])
-        con.commit()
-        session['headers'] = data['headers']
-        return redirect(url_for('config'))
-    
+    return render_template('config.pug', headers = session['headers'])   
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -135,7 +121,7 @@ def home():
     search = request.args.get('search', None)
     today = datetime.datetime.now(tz=pytz.timezone('Asia/Taipei')).date()
     try:
-        sdate = datetime.datetime.strptime(request.args.get('sdate', None), "%Y-%m-%d").date()
+        sdate = datetime.datetime.strptime(request.args.get('sdate', ''), "%Y-%m-%d").date()
     except:
         sdate = today
     initDate = today.replace(day=1) + relativedelta(months=page)
@@ -146,6 +132,8 @@ def home():
     if not user:
         return redirect(url_for('login'))
     sortedHeaders = dict(sorted(json.loads(user['datas'])['headers'].items(), key=lambda item: item[1].get('order', 0)))
+    tasks = list(json.loads(user['datas']).get('tasks', {}).values())
+    tasks.sort(key=lambda x: x.get('taskDate', ''))
     session['headers'] = sortedHeaders
     if search is None:
         res = con.execute("SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? AND object_date < ? ORDER BY object_date ASC", [session['pwdHashed'], initDate, initDate + relativedelta(months=1)])
@@ -167,7 +155,12 @@ def home():
         if key in holidayCalendar:
             val['holiday'] = holidayCalendar[key]
         dataSorted[key] = val
-    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today)
+    for task in tasks:
+        if task.get('taskDate', '') != '' and task.get('taskDate') in dataSorted:
+            if 'tasks' not in dataSorted[task['taskDate']]:
+                dataSorted[task['taskDate']]['tasks'] = []
+            dataSorted[task['taskDate']]['tasks'].append(task)
+    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today, tasks=tasks)
 
 @app.route('/month')
 def month():
@@ -207,6 +200,24 @@ def getContent(date, key):
         return jsonify(retData), 200, {'contentType': 'application/json'}
     else:
         return jsonify({"success": True, "note": ""}), 200, {'contentType': 'application/json'}
+
+@app.route('/api/update-task', methods=['POST'])
+def updateTask():
+    data = dict(request.json)
+    print(data)
+    con = get_db()
+
+    if len(data['taskId']) < 1:
+        hash = sha_hash(datetime.datetime.now().isoformat())
+        data['taskId'] = hash
+    user = con.execute("SELECT datas FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()
+    userDatas = json.loads(user['datas'])
+    if 'tasks' not in userDatas:
+        userDatas['tasks'] = {}
+    userDatas['tasks'][data['taskId']] = data
+    con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(userDatas, ensure_ascii=False), session['pwdHashed']])
+    con.commit()
+    return jsonify({"success": True, 'hash': data['taskId']}), 200, {'contentType': 'application/json'}
 
 @app.route('/api/update-content', methods=['POST'])
 def updateContent():

@@ -107,15 +107,7 @@ $(".textarea.note-key").on("blur", function (e) {
     return;
   }
   if (header.replace("<br>", "").length < 1) {
-    let dialog = confirm("空值會導致此欄位被移除且!!!無法復原!!!，是否確定？");
-    if (!dialog) {
-      location.reload(true);
-      return;
-    } else {
-      $(`table [data-note-key=${$(this).data('note-key')}]`).each(function () {
-        $(this).parent("th, td").remove();
-      })
-    }
+    header = " "
   }
 
   $.ajax({
@@ -195,6 +187,81 @@ $("select[name=freeze]").on("change", function (e) {
     }
   });
   localStorage.setItem("freeze_col", freezeCol);
+})
+
+$("#addTaskBtn").on("click", function (e) {
+  e.preventDefault();
+  let _dom = $(`
+    <div class="input-group mb-2 task-item">
+      <input type="hidden" name="task-id" value="">
+      <div class="input-group-text">
+        <input class="form-check-input mt-0" type="checkbox" value="">
+      </div>
+      <input type="text" class="form-control flex-grow-1">
+      <input type="date" class="form-control flex-grow-0" style="width:7rem; font-size: 0.7rem">
+    </div>
+    `)
+  $("#taskList").append(_dom)
+})
+
+function updateTask(dom) {
+  const isDone = $(dom).find("input[name=task-done]").is(':checked');
+  const taskId = $(dom).find("input[name=task-id]").val();
+  const taskContent = $(dom).find("input[name=task-content]").val();
+  const taskDate = $(dom).find("input[name=task-date]").val();
+  $.ajax({
+    type: "POST",
+    url: "/api/update-task",
+    data: JSON.stringify({
+      'taskId': taskId,
+      'taskContent': taskContent,
+      'taskDate': taskDate,
+      'isDone': isDone
+    }),
+    success: function (data) {
+      console.log("success", data);
+      $(dom).find("input[name=task-id]").val(data.hash);
+      $(dom).attr("data-task", data.hash);
+      if (taskDate != '' && $(`td.tasks [data-task="${taskId}"]`).length == 0) {
+        _taskDom = $(`
+          <label class="position-relative z-1 task-item" data-task="${data.hash}">
+            <input type="checkbox" name="task-done" ${isDone ? 'checked' : ''}>
+            <input type="hidden" name="task-id" value="${data.hash}">
+            <input type="hidden" name="task-content" value="${taskContent}">
+            <input type="hidden" name="task-date" value="${taskDate}">
+            <span>${taskContent}</span>
+          </label>
+        `)
+        $(`tr[data-note-date="${taskDate}"] td.tasks`).append(_taskDom)
+      }
+      $(`.task-item[data-task="${taskId}"]`).toggleClass("text-decoration-line-through opacity-50", isDone)
+      $(`.task-item[data-task="${taskId}"] input[type=checkbox]`).prop("checked", isDone)
+      $(`#taskModal .task-item[data-task="${taskId}"]`).toggleClass("d-none", isDone)
+    },
+    error: function (XMLHttpRequest, textStatus, errorThrown) {
+      alert(XMLHttpRequest.status, XMLHttpRequest.readyState, textStatus);
+    },
+    contentType: "application/json"
+  });
+
+}
+
+$("body").on("change", ".task-item input[type=checkbox]", function (e) {
+  e.preventDefault();
+  const _dom = $(this).parents(".task-item");
+  updateTask(_dom)
+})
+
+$("#taskList").on("change", ".task-item input[type=date]", function (e) {
+  e.preventDefault();
+  const _dom = $(this).parents(".task-item");
+  updateTask(_dom)
+})
+
+$("#taskList").on("blur", ".task-item input[type=text]", function (e) {
+  e.preventDefault();
+  const _dom = $(this).parents(".task-item");
+  updateTask(_dom)
 })
 
 $(function (e) {

@@ -1,15 +1,18 @@
 {% extends '/base.pug' %}
 {% block main %}
 div(style="background-color: #0006;"): .container.py-5: .my-5.py-5
-  a.btn.btn-dark(href="/") 返回
-  h1.mb-5 config
+  a.btn.btn-dark.mb-3(href="/") 返回
+  p order 數字越大越後面
   for key in headers
-    form(method="post" action="/config")
+    form(method="post")
       .input-group
         input.form-control.d-none(type="text" name="key" value="{{key}}" readonly)
         .input-group-text title
         input.form-control(type="text" name="title" value="{{headers[key]['title']}}")
         .input-group-text order
         input.form-control(type="number" name="order" value="{{headers[key].get('order', 0)}}" style="max-width:5rem")
-        button.btn.btn-dark(type="submit") 修改
+        button.btn.btn-warning(type="submit") 修改
+{% endblock %}
+{% block script %}
+script(src="{{ url_for('static', filename='js/config.js') }}")
 {% endblock %}

@@ -5,7 +5,8 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
 {% block main %}
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
-    .col-auto
+    .col-auto.d-flex
+      a.me-3.btn.btn-sm.btn-danger(href="/login"): i.bi-box-arrow-right
       h4.mb-0 Hello {{username}} 💕
     .col-auto.ms-auto
       select.form-control.form-control-sm(name="freeze")
@@ -15,30 +16,41 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
         option(value="3") 凍結3欄
         option(value="4") 凍結4欄
     .col-auto.d-flex
-      a.btn.btn-sm.btn-warning(href="/month?page={{request.args.get('page', 0)}}") 月曆
-      a.ms-2.btn.btn-sm.btn-warning.d-flex(href="/config") <i class="bi bi-gear my-auto"></i>
-      a.ms-2.btn.btn-sm.btn-warning(href="/login") 登出
+      a.ms-2.btn.btn-sm.btn-warning(href="/month?page={{request.args.get('page', 0)}}"): i.bi.bi-calendar-date
+      a.ms-2.btn.btn-sm.btn-warning(href="/config"): i.bi-gear
+      
   #table-block.flex-grow-1: table.table.m-0
     thead.sticky-top
       tr
         th.date: .d-grid.p-2: a#add-col.btn.btn-sm.btn-info(href="#") 新增欄
+        th.col-title: .d-grid.p-2
+          button.btn.btn-sm.btn-success(type="button" data-bs-toggle="modal" data-bs-target="#taskModal") 待辦事項
         {% for key in headers %}
         th.p-0.col-title
           .textarea.note-key.form-control(data-note-key="{{key}}" contenteditable="true") {{headers[key]['title']}}
         {% endfor %}
     tbody
       {% for date in data.keys() %}
-      tr
+      tr(data-note-date="{{date}}")
         if today.strftime('%Y-%m-%d') == date
-          th.date.today(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
+          th.date.today(class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
             div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
             div.what {{data[date].get('holiday', {}).get('what', '')}}
         else
           th.date(data-note-date="{{date}}" class="holiday-{{data[date].get('holiday', {}).get('isHoliday', 'False')}}")
             div {{data[date]['datetime'].strftime("%y/%m/%d (%a)")}}
             div.what {{data[date].get('holiday', {}).get('what', '')}}
+        td.p-2.tasks
+          if data[date].get('tasks')
+            each task in data[date].get('tasks')
+              label.position-relative.z-1.task-item(data-task="{{task['taskId']}}" class={'text-decoration-line-through opacity-50': task['isDone']})
+                input(type="checkbox" name="task-done" checked=task['isDone'])
+                input(type="hidden" name="task-id" value="{{task['taskId']}}")
+                input(type="hidden" name="task-content" value="{{task['taskContent']}}")
+                input(type="hidden" name="task-date" value="{{task['taskDate']}}")
+                span {{ task['taskContent'] }}
         {% for key in headers %}
-        td.p-0
+        td.p-0.notes
           .textarea.note-content.form-control(data-note-date="{{date}}" data-note-key="{{key}}" contenteditable="true") {{data[date].get(key,'')['note']}}
         {% endfor %}
       {% endfor %}
@@ -53,6 +65,25 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
         .ms-auto.col-auto: input.form-control.form-control-sm(type="date" name="sdate" value="{{request.args.get('sdate', today.strftime('%Y-%m-%d'))}}")
         .col.col-md-4: input.form-control.form-control-sm(type="text" name="search" value="{{request.args.get('search', '')}}")
         .col-auto: a#search.btn.btn-sm.btn-warning(href="#") 搜尋
+  
+  #taskModal.modal.fade(tabindex='-1' aria-labelledby='taskModalLabel')
+    .modal-dialog.modal-dialog-centered.modal-dialog-scrollable
+      .modal-content
+        .modal-header.justify-content-between
+          h5#taskModalLabel.modal-title 待辦事項
+          button#addTaskBtn.btn.btn-info(type='button'): i.bi-plus
+        .modal-body
+          #taskList.d-flex.flex-column
+            {% for task in tasks %}
+            .input-group.mb-2.task-item(class="{{'d-none' if task['isDone'] else ''}}" data-task="{{task['taskId']}}")
+              input(type="hidden" name="task-id" value="{{task['taskId']}}")
+              .input-group-text
+                input.form-check-input.mt-0(type="checkbox" name="task-done" checked=task['isDone'])
+              input(type="text" class="form-control flex-grow-1" name="task-content" value="{{task['taskContent']}}")
+              input(type="date" class="form-control flex-grow-0" style="width:7rem; font-size: 0.7rem" name="task-date" value="{{task['taskDate']}}")
+            {% endfor %}
+        .modal-footer
+          button.btn.btn-secondary(type='button' data-bs-dismiss='modal') 關閉
 {% endblock %}
 
 {% block script %}
