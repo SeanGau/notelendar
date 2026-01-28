@@ -222,7 +222,8 @@ function updateTask(dom) {
       console.log("success", data);
       $(dom).find("input[name=task-id]").val(data.hash);
       $(dom).attr("data-task", data.hash);
-      if (taskDate != '' && $(`td.tasks [data-task="${taskId}"]`).length == 0) {
+      if (taskDate != '' && $(`tr[data-note-date="${taskDate}"] td.tasks [data-task="${taskId}"]`).length == 0) {
+        $(`td.tasks [data-task="${taskId}"]`).remove();
         _taskDom = $(`
           <label class="position-relative z-1 task-item" data-task="${data.hash}">
             <input type="checkbox" name="task-done" ${isDone ? 'checked' : ''}>
