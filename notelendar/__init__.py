@@ -136,7 +136,7 @@ def home():
     if not user:
         return redirect(url_for('login'))
     sortedHeaders = dict(sorted(json.loads(user['datas'])['headers'].items(), key=lambda item: item[1].get('order', 0)))
-    tasks = list(json.loads(user['datas']).get('tasks', {}).values())
+    tasks = list(json.loads(user['tasks']).values())
     tasks.sort(key=lambda x: x.get('taskDate', ''))
     session['headers'] = sortedHeaders
     if search is None:
@@ -214,15 +214,13 @@ def updateTask():
     if len(data['taskId']) < 1:
         hash = sha_hash(datetime.datetime.now().isoformat())
         data['taskId'] = hash
-    user = con.execute("SELECT datas FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()
-    userDatas = json.loads(user['datas'])
-    if 'tasks' not in userDatas:
-        userDatas['tasks'] = {}
+    res = con.execute("SELECT tasks FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()
+    tasks = json.loads(res['tasks'])
     if data.get('taskContent', None):
-        userDatas['tasks'][data['taskId']] = data
-    elif data['taskId'] in userDatas['tasks']:
-        del userDatas['tasks'][data['taskId']]
-    con.execute("UPDATE user SET datas = ? WHERE author_hash = ?", [json.dumps(userDatas, ensure_ascii=False), session['pwdHashed']])
+        tasks[data['taskId']] = data
+    elif data['taskId'] in tasks:
+        del tasks[data['taskId']]
+    con.execute("UPDATE user SET tasks = ? WHERE author_hash = ?", [json.dumps(tasks, ensure_ascii=False), session['pwdHashed']])
     con.commit()
     return jsonify({"success": True, 'hash': data['taskId']}), 200, {'contentType': 'application/json'}
 
