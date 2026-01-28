@@ -9,3 +9,7 @@ config.py
 .venv/
 
 __pycache__
+
+notelendar.sock
+
+notelendar/static/assets/todaybg.jpg
