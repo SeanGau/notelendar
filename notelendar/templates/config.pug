@@ -14,5 +14,5 @@ div(style="background-color: #0006;"): .container.py-5: .my-5.py-5
         button.btn.btn-warning(type="submit") 修改
 {% endblock %}
 {% block script %}
-script(src="{{ url_for('static', filename='js/config.js') }}")
+script(src="{{ url_for('static', filename='js/config.js') }}?t={{_timestamp}}")
 {% endblock %}

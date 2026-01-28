@@ -10,6 +10,10 @@ app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
 locale.setlocale(locale.LC_ALL, "zh_TW.UTF-8")
 print("sqlite:", sqlite3.sqlite_version)
 
+@app.context_processor
+def inject_global_variables():
+    return {'_timestamp': str(datetime.datetime.now().timestamp())}
+
 holidayCalendar = {}
 for _year in [114, 115]:
     with open(f"./notelendar/static/assets/{_year}年中華民國政府行政機關辦公日曆表.csv", encoding="utf-8-sig") as csvfile:
