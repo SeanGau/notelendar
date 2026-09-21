@@ -3,6 +3,26 @@
 link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
 {% endblock %}
 {% block main %}
+.modal.fade#exportModal(tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true")
+  .modal-dialog.modal-dialog-centered
+    form.modal-content(action="{{ url_for('export_csv') }}" method="get")
+      .modal-header
+        h5#exportModalLabel.modal-title 匯出資料
+        button.btn-close(type="button" data-bs-dismiss="modal" aria-label="關閉")
+      .modal-body
+        .row.g-3
+          .col-sm-6
+            label.form-label(for="exportStartDate") 開始日期
+            input#exportStartDate.form-control(type="date" name="start_date" value="{{export_start}}" required)
+          .col-sm-6
+            label.form-label(for="exportEndDate") 結束日期
+            input#exportEndDate.form-control(type="date" name="end_date" value="{{export_end}}" required)
+        .form-text.mt-3 將匯出日期、待辦事項及所有欄位，檔案格式為 UTF-8 BOM CSV；日期範圍最多 366 天。
+      .modal-footer
+        button.btn.btn-secondary(type="button" data-bs-dismiss="modal") 取消
+        button.btn.btn-primary(type="submit")
+          i.bi-download.me-1
+          | 匯出 CSV
 .d-flex.flex-column.h-100
   #header-block.p-2: .row.align-items-center.g-2
     .col-auto.d-flex
@@ -16,6 +36,9 @@ link(rel='stylesheet' href="{{ url_for('static', filename='css/day.css') }}")
         option(value="3") 凍結3欄
         option(value="4") 凍結4欄
     .col-auto.d-flex
+      button.ms-2.btn.btn-sm.btn-info(type="button" data-bs-toggle="modal" data-bs-target="#exportModal" title="匯出 CSV")
+        i.bi-download
+        span.ms-1.d-none.d-md-inline 匯出
       a.ms-2.btn.btn-sm.btn-warning(href="/month?page={{request.args.get('page', 0)}}"): i.bi.bi-calendar-date
       a.ms-2.btn.btn-sm.btn-warning(href="/config"): i.bi-gear
       

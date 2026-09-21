@@ -1,7 +1,47 @@
-from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory
+from flask import Flask, g, request, render_template, session, redirect, url_for, jsonify, abort, send_from_directory, Response
 from sassutils.wsgi import SassMiddleware
 from dateutil.relativedelta import relativedelta
+from html.parser import HTMLParser
+from io import StringIO
 import sqlite3, json, hashlib, datetime, pytz, shutil, calendar, os, locale, csv, requests
+
+class _HTMLTextExtractor(HTMLParser):
+    block_tags = {'div', 'p', 'li'}
+
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+
+    def add_line_break(self):
+        if self.parts and not self.parts[-1].endswith('\n'):
+            self.parts.append('\n')
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'br' or tag in self.block_tags:
+            self.add_line_break()
+
+    def handle_endtag(self, tag):
+        if tag in self.block_tags:
+            self.add_line_break()
+
+    def handle_data(self, data):
+        self.parts.append(data)
+
+
+def plain_text(value):
+    return ('' if value is None else str(value)).replace('\xa0', ' ').strip()
+
+
+def html_to_text(value):
+    parser = _HTMLTextExtractor()
+    parser.feed('' if value is None else str(value))
+    parser.close()
+    return plain_text(''.join(parser.parts))
+
+
+def csv_cell(value):
+    text = '' if value is None else str(value)
+    return f"'{text}" if text.startswith(('=', '+', '-', '@')) else text
         
 app = Flask(__name__)
 app.config.from_pyfile('config.py', silent=True)
@@ -164,7 +204,16 @@ def home():
             if 'tasks' not in dataSorted[task['taskDate']]:
                 dataSorted[task['taskDate']]['tasks'] = []
             dataSorted[task['taskDate']]['tasks'].append(task)
-    return render_template('day.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today, tasks=tasks)
+    return render_template(
+        'day.pug',
+        data=dataSorted,
+        headers=session['headers'],
+        username=session['username'],
+        today=today,
+        tasks=tasks,
+        export_start=initDate.strftime('%Y-%m-%d'),
+        export_end=(initDate + relativedelta(months=1, days=-1)).strftime('%Y-%m-%d')
+    )
 
 @app.route('/month')
 def month():
@@ -190,6 +239,68 @@ def month():
     dataSorted = {key: val for key, val in sorted(dataByDay.items(), key = lambda ele: ele[0])}
     return render_template('month.pug', data=dataSorted, headers=session['headers'], username=session['username'], today=today, 
                            monthCalendar=monthDatesCalendar)
+
+@app.route('/export')
+def export_csv():
+    if 'pwdHashed' not in session:
+        return redirect(url_for('login'))
+
+    try:
+        start_date = datetime.datetime.strptime(request.args.get('start_date', ''), '%Y-%m-%d').date()
+        end_date = datetime.datetime.strptime(request.args.get('end_date', ''), '%Y-%m-%d').date()
+    except ValueError:
+        abort(400, description='請提供有效的開始與結束日期')
+    if start_date > end_date:
+        abort(400, description='開始日期不可晚於結束日期')
+    if (end_date - start_date).days + 1 > 366:
+        abort(400, description='匯出區間不可超過 366 天')
+
+    con = get_db()
+    user = con.execute("SELECT * FROM user WHERE author_hash = ?", [session['pwdHashed']]).fetchone()
+    if user is None:
+        return redirect(url_for('login'))
+
+    user_data = json.loads(user['datas'])
+    headers = dict(sorted(user_data['headers'].items(), key=lambda item: item[1].get('order', 0)))
+    rows = con.execute(
+        "SELECT object_date, datas FROM datas WHERE author_hash = ? AND object_date >= ? AND object_date <= ? ORDER BY object_date ASC",
+        [session['pwdHashed'], start_date, end_date]
+    ).fetchall()
+    notes_by_date = {row['object_date']: json.loads(row['datas']) for row in rows}
+
+    stored_tasks = user.get('tasks')
+    tasks = json.loads(stored_tasks) if stored_tasks else user_data.get('tasks', {})
+    tasks_by_date = {}
+    for task in tasks.values():
+        task_date = task.get('taskDate', '')
+        if start_date.isoformat() <= task_date <= end_date.isoformat():
+            status = '已完成' if task.get('isDone') else '未完成'
+            task_text = plain_text(task.get('taskContent'))
+            tasks_by_date.setdefault(task_date, []).append(f"[{status}] {task_text}")
+
+    output = StringIO(newline='')
+    writer = csv.writer(output)
+    writer.writerow(['日期', '待辦事項', *[csv_cell(html_to_text(header['title'])) for header in headers.values()]])
+    current_date = start_date
+    while current_date <= end_date:
+        date_string = current_date.isoformat()
+        day_notes = notes_by_date.get(date_string, {})
+        writer.writerow([
+            date_string,
+            csv_cell('\n'.join(tasks_by_date.get(date_string, []))),
+            *[
+                csv_cell(html_to_text(day_notes.get(key, {}).get('note', '')))
+                for key in headers
+            ]
+        ])
+        current_date += datetime.timedelta(days=1)
+
+    filename = f"notelendar_{start_date.isoformat()}_{end_date.isoformat()}.csv"
+    return Response(
+        '\ufeff' + output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
 
 @app.route('/api/get-content/<date>/<key>')
 def getContent(date, key):
